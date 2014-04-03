@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Teams - Dynasty{% end block %}
+{% block content %}
+<h1>{{ team.name }}</h1>
+<table>
+	<tr>
+	<td>Name</td>
+	<td>Position</td>
+	<td>Age</td>
+	<td>Shooting</td>
+	<td>Skill</td>
+	<td>Stamina</td>
+</tr>
+{% for player in team.player_set.all %}
+<tr>
+	<td>{{ player.name }}</td>
+	<td>{{ player.primary_position_string }}
+	<td>{{ player.age }}</td>
+	<td>{{ player.shooting }}</td>
+	<td>{{ player.skill }}</td>
+	<td>{{ player.stamina }}</td>
+</tr>
+{% end for %}
+</table>
+
+{% end block %}
