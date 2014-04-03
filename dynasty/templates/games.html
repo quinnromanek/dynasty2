@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Games - Dynasty{% endblock %}
+
+{% block content %}
+<h1>Game Schedule</h1>
+Week {% for week in weeks %}<a href="#week{{ forloop.counter }}">{{ forloop.counter }}</a> {% endfor %}
+{% for week in weeks %}
+<a name="week{{ forloop.counter }}"></a>
+<h3>Week {{ forloop.counter }}</h3>
+
+{% for game in week %}
+{% if not game.is_finished %}
+<a href="{% url 'dynasty.views.teams' %}{{ game.away_team.name|lower }}">{{ game.away_team.name }}</a> @
+<a href="{% url 'dynasty.views.teams' %}{{ game.home_team.name|lower }}">{{ game.home_team.name }}</a><br>
+{% else %}
+<a href="{% url 'dynasty.views.teams' %}{{ game.away_team.name|lower }}">{{ game.away_team.name }} {{ game.awayScore }}</a> @
+<a href="{% url 'dynasty.views.teams' %}{{ game.home_team.name|lower }}">{{ game.homeScore }} {{ game.home_team.name }}</a><br>
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% endblock %}

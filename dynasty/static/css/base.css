@@ -1,0 +1,17 @@
+a {
+	color:darkgreen;
+}
+a:hover {
+	color:darkgray;
+}
+
+ul.nav {
+	background-color: lightgreen;
+
+}
+.nav a:hover {
+	background-color: darkgreen; 
+}
+ul.nav a {
+	color: black;
+}
