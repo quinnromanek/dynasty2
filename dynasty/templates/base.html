@@ -16,11 +16,35 @@
 <body>
 	<div class="navbar">
 		<div class="navbar-inner">
-			<ul class="nav nav-pills">
+			<ul class="nav nav-pills mainnav">
 				<li><a href="{% url 'dynasty.views.index' %}">League</a></li>
-				<li><a href="{% url 'dynasty.views.teams' %}">Teams</a></li>
+				<li><a href="{% url 'dynasty.views.teams' %}">Standings</a></li>
 				<li><a href="{% url 'dynasty.views.players' %}">Players</a></li>
-				<li><a href="{% url 'dynasty.views.games' %}">Games</a></li>
+				<li><a href="{% url 'dynasty.views.games' %}">Schedule</a></li>
+				<li><a data-toggle="dropdown" href="{% url 'dynasty.views.teams' %}">Teams <span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+  						<li><a href="{% url 'dynasty.views.teams' %}rush/">Rush</a></li>
+  						<li><a href="{% url 'dynasty.views.teams' %}knights/">Knights</a></li>
+  						<li><a href="{% url 'dynasty.views.teams' %}gryphons/">Gryphons</a></li>
+  						<li><a href="{% url 'dynasty.views.teams' %}muscle/">Muscle</a></li>
+  						<li class="divider"></li>
+  						<li><a href="{% url 'dynasty.views.teams' %}wolves/">Wolves</a></li>
+  						<li><a href="{% url 'dynasty.views.teams' %}bandits/">Bandits</a></li>
+  						<li><a href="{% url 'dynasty.views.teams' %}phoenix/">Phoenix</a></li>
+  						<li><a href="{% url 'dynasty.views.teams' %}cobras/">Cobras</a></li>
+  						<li class="divider"></li>
+  						<li><a href="{% url 'dynasty.views.teams' %}dragons/">Dragons</a></li>
+  						<li><a href="{% url 'dynasty.views.teams' %}warriors/">Warriors</a></li>
+  						<li><a href="{% url 'dynasty.views.teams' %}nova/">Nova</a></li>
+  						<li><a href="{% url 'dynasty.views.teams' %}diamond/">Diamond</a></li>
+  						<li class="divider"></li>
+  						<li><a href="{% url 'dynasty.views.teams' %}flames/">Flames</a></li>
+  						<li><a href="{% url 'dynasty.views.teams' %}crocs/">Crocs</a></li>
+  						<li><a href="{% url 'dynasty.views.teams' %}zombies/">Zombies</a></li>
+  						<li><a href="{% url 'dynasty.views.teams' %}pilgrims/">Pilgrims</a></li>
+
+  					</ul>
+				</li>
 			<ul>
 		</div>
 	</div>
