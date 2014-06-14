@@ -15,7 +15,23 @@ class Team(models.Model):
 		return "{0} ({1}-{2})".format(self.name, self.wins, self.losses)
 
 	def win_pct(self):
-		return float(self.wins)/(float(self.wins+self.losses))
+		try:
+			return float(self.wins)/(float(self.wins+self.losses))
+		except ZeroDivisionError:
+			return 0
+
+	def starters(self):
+		""" Should only be called after validating roster. """
+		s = []
+		for pos in range(1, 6):	
+			s.append(self.player_set.get(roster=pos))
+		return s
+
+	def bench(self):
+		b = self.player_set.filter(roster=0)
+		return b
+
+
 
 	def season_games(self):
 		return Game.objects.filter(Q(away_team__id=self.id) | Q(home_team__id=self.id)).order_by('week')
@@ -35,6 +51,8 @@ class Player(models.Model):
 	def __unicode__(self):
 		return "{0}".format(self.name)
 
+	def get_shot(self, defender, quarter, time_left):
+		pass
 class Game(models.Model):
 	home_team = models.ForeignKey(Team, related_name="home_game")
 	away_team = models.ForeignKey(Team, related_name="away_game")

@@ -5,13 +5,27 @@ a:hover {
 	color:darkgray;
 }
 
-ul.nav {
+ul.mainnav {
 	background-color: lightgreen;
 
 }
+ul.rush {
+	background-color: blue;
+
+}
+
 .nav a:hover {
 	background-color: darkgreen; 
 }
 ul.nav a {
 	color: black;
+}
+.gamepanel {
+	display: inline-block;
+}
+tbody td {
+	font-style: bold;
+}
+.player-table {
+	table-layout: fixed;
 }

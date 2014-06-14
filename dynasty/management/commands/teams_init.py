@@ -8,6 +8,27 @@ teams = [
 		["Dragons", "Warriors", "Nova", "Diamond"],
 		["Flames", "Crocs", "Zombies", "Pilgrims"]
 	]
+fnames = [ "George", "James", "Clint",
+			"Fred", "Tom", "Abraham", "Gustav", "Joseph", "Andrew", "Zach",
+			"Michael", "Eric", "Matthew", "Daniel", "Brandon", "Liam", "Lewis",
+			"Andre", "Frank", "Asher", "LaRon", "Chris", "Nick", "Patrick",
+			"Max", "Xavier", "Dan", "Sean", "Shawn", "Mark", "Giuseppe",
+			"Stephen", "Sam", "Samuel", "Sammy", "Mike", "Sebastian", "Lee", "Ming", "Tao", "Jose",
+			"Eduardo", "Jim", "Jimmy", "D.J", "Allen", "Ray", "Griffin", "Quinn", "Louis", "Lou", "Will",
+			"William", "Willie", "Raymond", "Connor", "C.J", "Ethan", "Carter", "John", "Johnny", "Mitchell",
+			"Francisco", "Jamie", "Victor", "Paul", "Harry", "Harrison", "Noah", "Desmond", "Ryan", "Weston"
+		]
+lnames = [
+	"Bradley", "Marshall", "Gordon",
+			"Jordan", "Romanek", "Owen", "Goldstein", "Robinson", "Louis",
+			"Thomas", "Conrad", "Waterson", "Jacques", "Smithson", "Binks",
+			"Anderson", "Moran", "Jones", "Roberts", "Richardson", "Hanson",
+			"Bransen", "Enroth", "Butler", "Tyler", "Wallace", "Franklin",
+			"Washington", "Madison", "Mason", "Johnson", "Miller", "Allen", "Green", "Li",
+			"Lincoln", "Bird", "Monroe", "Jefferson", "Richards", "Smith", "Williams", "Lopez",
+			"Brown", "Davis", "Wilson", "Moore", "Taylor", "Thomas", "Jackson", "White", "Harris",
+			"Martin", "Thompson", "Garcia", "Martinez", "Robinson", "Clark", "Rodriguez", "Lee"
+]
 def make_teams():
 	""" Cleans all teams and repopulates divisions. """
 	Team.objects.all().delete()
@@ -77,6 +98,28 @@ def create_schedule(div_games=2, conf_games=1, int_games=1):
 		counts[game_type] += 1
 		
 		i += 1
+def create_random_player(team, age=1, position=0, roster=0):
+	if position == 0:
+		position = randrange(5)+1
+	name = fnames[randrange(len(fnames))] + " " + lnames[randrange(len(lnames))]
+	s_position = randrange(6)
+	skill = randrange(6)+1
+	shooting = randrange(6)+1
+	stamina = randrange(6)+1
+	Player.objects.create(name=name, primary_position=position, secondary_position=s_position, skill=skill, shooting=shooting,
+		stamina=stamina, age=age, team=team, roster=roster)
+def generate_team(team):
+	for starter in range(1, 6):
+		create_random_player(team=team, position=starter, roster=starter)
+	for player in range(7):
+		create_random_player(team=team)
+
+def generate_players_for_teams():
+	Player.objects.all().delete()
+	teams = Team.objects.all()
+	for team in teams:
+		generate_team(team)
+
 
 class Command(BaseCommand):
 	help = "Cleans all teams and repopulates divisions"
@@ -84,4 +127,5 @@ class Command(BaseCommand):
 	def handle(self, *args, **options):
 		make_teams()
 		create_schedule()
+		generate_players_for_teams()
 		self.stdout.write("Success.")

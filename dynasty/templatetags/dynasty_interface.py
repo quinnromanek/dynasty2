@@ -12,3 +12,8 @@ def position_verbose(value):
 	table = ["None", "Point Guard", "Shooting Guard", "Small Forward", "Power Forward"
 					,"Center"]
 	return table[value]
+
+@register.filter
+def division_name(value):
+	table = ["Northeast", "Southeast", "Northwest", "Southwest"]
+	return table[value]

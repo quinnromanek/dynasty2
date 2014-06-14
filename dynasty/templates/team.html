@@ -14,27 +14,46 @@
 <!-- Tab panes -->
 <div class="tab-content">
   <div class="tab-pane active" id="roster">
-	<table class="table table-striped table-hover table-condensed"><thead>
+	<table class="table table-striped table-hover table-condensed player-table"><thead>
 		<tr>
+		<td>Pos</td>
 		<td>Name</td>
 		<td>Position</td>
-		<td>Age</td>
+		
 		<td>Shooting</td>
 		<td>Skill</td>
 		<td>Stamina</td>
+		<td>Age</td>
 	</tr>
 	</thead><tbody>
-	{% for player in team.player_set.all %}
+	{% for player in team.starters %}
 	<tr>
+		<td>{{ forloop.counter|position_short }}</td>
 		<td>{{ player.name }}</td>
 		<td>{{ player.primary_position|position_short }}
 			{% if player.secondary_position != 0 %}
 			| {{ player.secondary_position|position_short }}
 			{% endif %}</td>
-		<td>{{ player.age }}</td>
+		
 		<td>{{ player.shooting }}</td>
 		<td>{{ player.skill }}</td>
 		<td>{{ player.stamina }}</td>
+		<td>{{ player.age }}</td>
+	</tr>
+	{% endfor %}
+	{% for player in team.bench %}
+	<tr>
+		<td>BN</td>
+		<td>{{ player.name }}</td>
+		<td>{{ player.primary_position|position_short }}
+			{% if player.secondary_position != 0 %}
+			| {{ player.secondary_position|position_short }}
+			{% endif %}</td>
+		
+		<td>{{ player.shooting }}</td>
+		<td>{{ player.skill }}</td>
+		<td>{{ player.stamina }}</td>
+		<td>{{ player.age }}</td>
 	</tr>
 	{% endfor %}
 	</tbody>
