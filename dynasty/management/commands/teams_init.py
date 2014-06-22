@@ -142,12 +142,12 @@ def create_random_player(team, age=1, position=0, roster=0):
         position = randrange(5) + 1
     name = fnames[randrange(len(fnames))] + " " + lnames[randrange(len(lnames))]
     s_position = get_secondary_position(position)
-    skill = randrange(6) + 1
-    shooting = randrange(6) + 1
-    stamina = randrange(6) + 1
-    Player.objects.create(name=name, primary_position=position, secondary_position=s_position, skill=skill,
-                          shooting=shooting,
-                          stamina=stamina, age=age, team=team, roster=roster)
+    skill = randrange(10) + 1
+    shooting = randrange(10) + 1
+    stamina = randrange(10) + 1
+    Player.objects.create(name=name, primary_position=position, secondary_position=s_position, defense=skill,
+                          offense=shooting,
+                          athletics=stamina, age=age, team=team, roster=roster)
 
 
 def generate_team(team):

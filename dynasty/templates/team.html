@@ -20,9 +20,9 @@
 		<td>Name</td>
 		<td>Position</td>
 		
-		<td>Shooting</td>
-		<td>Skill</td>
-		<td>Stamina</td>
+		<td>Offense</td>
+		<td>Defense</td>
+		<td>Athleticism</td>
 		<td>Age</td>
 	</tr>
 	</thead><tbody>
@@ -35,9 +35,9 @@
 			| {{ player.secondary_position|position_short }}
 			{% endif %}</td>
 		
-		<td>{{ player.shooting }}</td>
-		<td>{{ player.skill }}</td>
-		<td>{{ player.stamina }}</td>
+		<td>{{ player.offense }}</td>
+		<td>{{ player.defense }}</td>
+		<td>{{ player.athleticism }}</td>
 		<td>{{ player.age }}</td>
 	</tr>
 	{% endfor %}
@@ -50,9 +50,9 @@
 			| {{ player.secondary_position|position_short }}
 			{% endif %}</td>
 		
-		<td>{{ player.shooting }}</td>
-		<td>{{ player.skill }}</td>
-		<td>{{ player.stamina }}</td>
+		<td>{{ player.offense }}</td>
+		<td>{{ player.defense }}</td>
+		<td>{{ player.athletics }}</td>
 		<td>{{ player.age }}</td>
 	</tr>
 	{% endfor %}
