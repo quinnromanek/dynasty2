@@ -1,4 +1,4 @@
-from dynasty.models import Team, Player, Game
+from dynasty.models import Team, Player, Game, Season, PlayerStats
 from django.core.management.base import BaseCommand, CommandError
 from random import randrange, shuffle
 from itertools import combinations
@@ -168,7 +168,10 @@ class Command(BaseCommand):
     help = "Cleans all teams and repopulates divisions"
 
     def handle(self, *args, **options):
+        Season.objects.all().delete()
+        PlayerStats.objects.all().delete()
         make_teams()
         create_schedule()
         generate_players_for_teams()
+        Season.objects.create(name="main")
         self.stdout.write("Success.")

@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
-from dynasty.models import Player, Team, Game
+from dynasty.models import Player, Team, Game, PlayerStats
+from django.db.models import Q
 
 # Create your views here.
 def index(request):
@@ -31,3 +32,14 @@ def games(request):
         weeks.append(Game.objects.filter(week=week_num))
 
     return render(request, 'games.html', {'weeks': weeks})
+
+
+def game(request, game_id):
+    current_game = get_object_or_404(Game, id=game_id)
+    home_stats = []
+    away_stats = []
+    if current_game.is_finished():
+        home_stats = PlayerStats.objects.filter(Q(game__id=game_id) & Q(team=current_game.home_team)).order_by("roster")
+        away_stats = PlayerStats.objects.filter(Q(game__id=game_id) & Q(team=current_game.away_team)).order_by("roster")
+
+    return render(request, 'game.html', {'game':current_game, "home_stats":home_stats, "away_stats":away_stats})

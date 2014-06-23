@@ -8,7 +8,12 @@ def position_string(pos):
     return arr[pos]
 
 
-# Create your models here.
+class Season(models.Model):
+    week = models.IntegerField(default=0)
+    year = models.IntegerField(default=0)
+    name = models.CharField(max_length=50)
+
+
 class Team(models.Model):
     name = models.CharField(max_length=50)
     wins = models.IntegerField(default=0)
@@ -62,6 +67,7 @@ class Player(models.Model):
         return 0.5
 
 
+
 class Game(models.Model):
     home_team = models.ForeignKey(Team, related_name="home_game")
     away_team = models.ForeignKey(Team, related_name="away_game")
@@ -81,10 +87,32 @@ class Game(models.Model):
 
         home_players = self.home_team.starters()
         away_players = self.away_team.starters()
-        roll = 2.0
+
+        home_stats = []
+        away_stats = []
+        for i in range(5):
+            home_stats.append([0, 0, 0, 0])
+            away_stats.append([0, 0, 0, 0])
+        roll = 3.0
         quarter_length = 720.0
         clock = quarter_length
         quarter = 1
+
+        def log_stat(type, poss, player):
+            if poss is home_players:
+                stats = home_stats
+            else:
+                stats = away_stats
+
+            if type == "score":
+                stats[player][0] += 1
+                stats[player][1] += 1
+            elif type == "miss":
+                stats[player][1] += 1
+            elif type == "rebound":
+                stats[player][2] += 1
+            elif type == "steal":
+                stats[player][3] += 1
 
         def avg(a, b):
             return float(a + b) / 2.0
@@ -148,6 +176,7 @@ class Game(models.Model):
             if main_roll > p_shot + p_pass:
                 # Steal
                 team_poss = switch_team(team_poss)
+                log_stat("steal", team_poss, player_poss)
             elif main_roll > p_shot:
                 # Pass
                 target = (player_poss + randrange(3) + 1) % 5
@@ -156,6 +185,7 @@ class Game(models.Model):
                                              avg(switch_team(team_poss)[player_poss].defense,
                                                  switch_team(team_poss)[target].defense))):
                     team_poss = switch_team(team_poss)
+                    log_stat("steal", team_poss, player_poss)
 
                 clock, quarter, end = do_roll(clock, quarter)
                 if end:
@@ -165,9 +195,10 @@ class Game(models.Model):
 
             else:
                 # Shot
-                if random() > 0.6 * shot(team_poss[player_poss].offense, switch_team(team_poss)[player_poss].defense):
+                if random() > 0.3 + 0.3 * shot(team_poss[player_poss].offense, switch_team(team_poss)[player_poss].defense):
                     # Rebound
                     # Placeholder for rebounding logic
+                    log_stat("miss", team_poss, player_poss)
                     if random() > 0.75:
                         team_poss = switch_team(team_poss)
                         player_poss = 0
@@ -180,6 +211,7 @@ class Game(models.Model):
                         break
                 else:
                     score(team_poss)
+                    log_stat("score", team_poss, player_poss)
                     team_poss = switch_team(team_poss)
                     player_poss = 0
 
@@ -188,6 +220,45 @@ class Game(models.Model):
                 if end:
                     break
 
+        for i in range(len(home_players)):
+            log_game(home_players[i], self, self.home_team, home_stats[i])
+
+        for i in range(len(away_players)):
+            log_game(away_players[i], self, self.away_team, away_stats[i])
+
+        if self.homeScore > self.awayScore:
+            self.home_team.wins += 1
+        else:
+            self.away_team.wins += 1
+        self.save()
 
 
+
+class PlayerStats(models.Model):
+    player = models.ForeignKey(Player)
+    game = models.ForeignKey(Game)
+    roster = models.IntegerField(default=0)
+    team = models.ForeignKey(Team)
+    field_goals = models.IntegerField(default=0)
+
+    field_goals_attempted = models.IntegerField(default=0)
+    rebounds = models.IntegerField(default=0)
+    steals = models.IntegerField(default=0)
+
+    def fg_pct(self):
+        if self.field_goals_attempted > 0:
+            return float(self.field_goals)/float(self.field_goals_attempted)
+        else:
+            return 0.0
+
+    def points(self):
+        return 2*self.field_goals
+
+    def __unicode__(self):
+        return "{0} %: {1} Stl: {2} Pts: {3}".format(self.player.name, self.fg_pct(), self.steals, self.points())
+
+
+def log_game(player, game, team, data):
+    obj = PlayerStats.objects.create(player=player, game=game, roster=player.roster, team=team,
+                               field_goals=data[0], field_goals_attempted=data[1], rebounds=data[2], steals=data[3])
 

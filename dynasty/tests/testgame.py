@@ -1,8 +1,8 @@
 __author__ = 'Quinn Romanek'
 
 from django.test import TestCase
-
-from dynasty.models import Team, Player, Game
+from django.db.models import Sum
+from dynasty.models import Team, Player, Game, PlayerStats
 from dynasty.management.commands.teams_init import create_random_player, generate_team
 
 class GameTestCase(TestCase):
@@ -42,7 +42,7 @@ class GameTestCase(TestCase):
         Player.objects.all().delete()
         for pos in range(1, 6):
             Player.objects.create(defense=10, offense=10, athletics=10, primary_position=pos, roster=pos, team=self.ringers)
-            Player.objects.create(defense=9, offense=9, athletics=9, primary_position=pos, roster=pos, team=self.ballers)
+            Player.objects.create(defense=5, offense=5, athletics=5, primary_position=pos, roster=pos, team=self.ballers)
 
         times = 0
         for trial in range(100):
@@ -53,4 +53,20 @@ class GameTestCase(TestCase):
 
         print("Win Pct on better team: {0}".format(times/100.0))
         self.assertGreater(times/100.0, 0.8, "Win Pct not high enough: {0}".format(times/100.0))
+
+
+    def test_stats_kept(self):
+        Player.objects.all().delete()
+        PlayerStats.objects.all().delete()
+        generate_team(self.ballers)
+        generate_team(self.ringers)
+
+        game = Game.objects.create(away_team=self.ringers, home_team=self.ballers)
+        game.play()
+
+        stats = PlayerStats.objects.filter(game=game).filter(team=self.ringers)
+
+        total_points = stats.aggregate(points=Sum('field_goals'))['points']
+
+        self.assertEqual(total_points*2, game.awayScore)
 
