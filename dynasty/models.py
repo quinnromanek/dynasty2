@@ -94,7 +94,7 @@ class Game(models.Model):
             home_stats.append([0, 0, 0, 0])
             away_stats.append([0, 0, 0, 0])
         roll = 3.0
-        quarter_length = 720.0
+        quarter_length = 600.0
         clock = quarter_length
         quarter = 1
 
@@ -195,7 +195,7 @@ class Game(models.Model):
 
             else:
                 # Shot
-                if random() > 0.3 + 0.3 * shot(team_poss[player_poss].offense, switch_team(team_poss)[player_poss].defense):
+                if random() > 0.35 + 0.35 * shot(team_poss[player_poss].offense, switch_team(team_poss)[player_poss].defense):
                     # Rebound
                     # Placeholder for rebounding logic
                     log_stat("miss", team_poss, player_poss)
