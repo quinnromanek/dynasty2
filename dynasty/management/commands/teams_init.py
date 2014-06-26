@@ -2,6 +2,7 @@ from dynasty.models import Team, Player, Game, Season, PlayerStats
 from django.core.management.base import BaseCommand, CommandError
 from random import randrange, shuffle
 from itertools import combinations
+from dynasty.utils import get_binomial_result
 
 teams = [
     ["Rush", "Muscle", "Gryphons", "Knights"],
@@ -142,9 +143,9 @@ def create_random_player(team, age=1, position=0, roster=0):
         position = randrange(5) + 1
     name = fnames[randrange(len(fnames))] + " " + lnames[randrange(len(lnames))]
     s_position = get_secondary_position(position)
-    skill = randrange(10) + 1
-    shooting = randrange(10) + 1
-    stamina = randrange(10) + 1
+    skill =  get_binomial_result(1, 10, 0.4)
+    shooting = get_binomial_result(1, 10, 0.4)
+    stamina = get_binomial_result(1, 10, 0.4)
     Player.objects.create(name=name, primary_position=position, secondary_position=s_position, defense=skill,
                           offense=shooting,
                           athletics=stamina, age=age, team=team, roster=roster)
