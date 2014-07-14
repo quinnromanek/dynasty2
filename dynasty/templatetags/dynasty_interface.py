@@ -20,3 +20,10 @@ def position_verbose(value):
 def division_name(value):
     table = ["Northeast", "Southeast", "Northwest", "Southwest"]
     return table[value]
+
+@register.filter
+def game_verbose(game):
+    if game.is_finished():
+        return "{0} {1} - {2} {3}".format(game.home_team.name, game.homeScore, game.awayScore, game.away_team.name)
+    else:
+        return "{0} - {1}".format(game.home_team.name, game.away_team.name)

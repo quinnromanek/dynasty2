@@ -1,59 +1,60 @@
 {% extends "base.html" %}
+{% load staticfiles %}
 {% load dynasty_interface %}
-{% block title %}Teams - Dynasty{% endblock %}
+{% block title %}{{ team.name }} - Dynasty{% endblock %}
+{% block head %}
+<script src="{% static 'js/team.js' %}"></script>
+{% endblock %}
 {% block content %}
-<img src="{{ STATIC_URL }}img/{{ team.name }}.jpg">
+<img src="{{ static_url }}img/{{ team.name }}.jpg">
 <div class="page-header">
-<h1>{{ team.name }} ({{ team.wins }}-{{ team.losses}}) <small>{{ team.division|division_name }} Division</small></h1>
+<h1>{{ team.name }} ({{ team.wins }}-{{ team.losses}}) <small>{{ team.division|division_name }} division</small></h1>
 </div>
 <ul class="nav nav-tabs">
   <li class="active"><a href="#roster" data-toggle="tab">Roster</a></li>
   <li><a href="#schedule" data-toggle="tab">Schedule</a></li>
 </ul>
 
-<!-- Tab panes -->
+<!-- tab panes -->
 <div class="tab-content">
   <div class="tab-pane active" id="roster">
-	<table class="table table-striped table-hover table-condensed player-table"><thead>
+	<table id="players" class="table table-striped table-hover table-condensed player-table"><thead>
 		<tr>
 		<td>Pos</td>
 		<td>Name</td>
 		<td>Position</td>
 		
-		<td>Offense</td>
-		<td>Defense</td>
-		<td>Athleticism</td>
+		<td>Off</td>
+		<td>Def</td>
+		<td>Ath</td>
 		<td>Age</td>
+        <td>Sub</td>
 	</tr>
 	</thead><tbody>
 	{% for player in team.starters %}
-	<tr>
+	<tr id="player{{ player.id }}">
 		<td>{{ forloop.counter|position_short }}</td>
 		<td>{{ player.name }}</td>
-		<td>{{ player.primary_position|position_short }}
-			{% if player.secondary_position != 0 %}
-			| {{ player.secondary_position|position_short }}
-			{% endif %}</td>
+		<td>{{ player.primary_position|position_short }}{% if player.secondary_position != 0 %}|{{ player.secondary_position|position_short }}{% endif %}</td>
 		
 		<td>{{ player.offense }}</td>
 		<td>{{ player.defense }}</td>
 		<td>{{ player.athletics }}</td>
 		<td>{{ player.age }}</td>
+        <td><button type="button" class="btn btn-default mover">Move</button></td>
 	</tr>
 	{% endfor %}
 	{% for player in team.bench %}
-	<tr>
+	<tr id="player{{ player.id }}">
 		<td>BN</td>
 		<td>{{ player.name }}</td>
-		<td>{{ player.primary_position|position_short }}
-			{% if player.secondary_position != 0 %}
-			| {{ player.secondary_position|position_short }}
-			{% endif %}</td>
+		<td>{{ player.primary_position|position_short }}{% if player.secondary_position != 0 %}|{{ player.secondary_position|position_short }}{% endif %}</td>
 		
 		<td>{{ player.offense }}</td>
 		<td>{{ player.defense }}</td>
 		<td>{{ player.athletics }}</td>
 		<td>{{ player.age }}</td>
+        <td><button type="button" class="btn btn-default mover">Move</button></td>
 	</tr>
 	{% endfor %}
 	</tbody>
@@ -61,8 +62,8 @@
   </div>
   <div class="tab-pane" id="schedule">
   	{% for game in team.season_games %}
-  	Week {{ forloop.counter }}: <a href="{% url 'dynasty.views.teams' %}{{ game.away_team.name|lower }}">{{ game.away_team.name }}</a> @
-	<a href="{% url 'dynasty.views.teams' %}{{ game.home_team.name|lower }}">{{ game.home_team.name }}</a><br>
+  	week {{ forloop.counter }}: <a href="{% url 'team' game.away_team.name|lower %}">{{ game.away_team.name }}</a> @
+	<a href="{% url 'team' game.home_team.name|lower %}">{{ game.home_team.name }}</a><br>
   	{% endfor %}
   </div>
 </div>

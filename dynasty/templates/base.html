@@ -1,5 +1,6 @@
 {% load staticfiles %}
 {% load url from future %}
+{% load dynasty_interface %}
 <!DOCTYPE html>
 <head>
 <title>{% block title %}Dynasty Web{% endblock %}</title>
@@ -11,37 +12,37 @@
 <script src="{% static 'js/bootstrap.min.js' %}"></script>
 <script src="{% static 'js/jquery.webticker.js' %}"></script>
 <link rel="stylesheet" href="{% static 'css/base.css' %}">
-
+{% block head %}{% endblock %}
 </head>
 <body>
 	<div class="navbar">
 		<div class="navbar-inner">
 			<ul class="nav nav-pills mainnav">
-				<li><a href="{% url 'dynasty.views.index' %}">League</a></li>
-				<li><a href="{% url 'dynasty.views.teams' %}">Standings</a></li>
+				<li><a href="{% url 'index' %}">League</a></li>
+				<li><a href="{% url 'teams' %}">Standings</a></li>
 				<li><a href="{% url 'dynasty.views.players' %}">Players</a></li>
-				<li><a href="{% url 'dynasty.views.games' %}">Schedule</a></li>
-				<li><a data-toggle="dropdown" href="{% url 'dynasty.views.teams' %}">Teams <span class="caret"></span></a>
+				<li><a href="{% url 'games' %}">Schedule</a></li>
+				<li><a data-toggle="dropdown" href="{% url 'teams' %}">Teams <span class="caret"></span></a>
 					<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-  						<li><a href="{% url 'dynasty.views.teams' %}rush/">Rush</a></li>
-  						<li><a href="{% url 'dynasty.views.teams' %}knights/">Knights</a></li>
-  						<li><a href="{% url 'dynasty.views.teams' %}gryphons/">Gryphons</a></li>
-  						<li><a href="{% url 'dynasty.views.teams' %}muscle/">Muscle</a></li>
+  						<li><a href="{% url 'team' 'rush' %}">Rush</a></li>
+  						<li><a href="{% url 'team' 'knights' %}">Knights</a></li>
+  						<li><a href="{% url 'team' 'gryphons' %}">Gryphons</a></li>
+  						<li><a href="{% url 'team' 'muscle' %}">Muscle</a></li>
   						<li class="divider"></li>
-  						<li><a href="{% url 'dynasty.views.teams' %}wolves/">Wolves</a></li>
-  						<li><a href="{% url 'dynasty.views.teams' %}bandits/">Bandits</a></li>
-  						<li><a href="{% url 'dynasty.views.teams' %}phoenix/">Phoenix</a></li>
-  						<li><a href="{% url 'dynasty.views.teams' %}cobras/">Cobras</a></li>
+  						<li><a href="{% url 'team' 'wolves' %}">Wolves</a></li>
+  						<li><a href="{% url 'team' 'bandits' %}">Bandits</a></li>
+  						<li><a href="{% url 'team' 'phoenix' %}">Phoenix</a></li>
+  						<li><a href="{% url 'team' 'cobras' %}">Cobras</a></li>
   						<li class="divider"></li>
-  						<li><a href="{% url 'dynasty.views.teams' %}dragons/">Dragons</a></li>
-  						<li><a href="{% url 'dynasty.views.teams' %}warriors/">Warriors</a></li>
-  						<li><a href="{% url 'dynasty.views.teams' %}nova/">Nova</a></li>
-  						<li><a href="{% url 'dynasty.views.teams' %}diamond/">Diamond</a></li>
+  						<li><a href="{% url 'team' 'dragons' %}">Dragons</a></li>
+  						<li><a href="{% url 'team' 'warriors' %}">Warriors</a></li>
+  						<li><a href="{% url 'team' 'nova' %}">Nova</a></li>
+  						<li><a href="{% url 'team' 'diamond' %}">Diamond</a></li>
   						<li class="divider"></li>
-  						<li><a href="{% url 'dynasty.views.teams' %}flames/">Flames</a></li>
-  						<li><a href="{% url 'dynasty.views.teams' %}crocs/">Crocs</a></li>
-  						<li><a href="{% url 'dynasty.views.teams' %}zombies/">Zombies</a></li>
-  						<li><a href="{% url 'dynasty.views.teams' %}pilgrims/">Pilgrims</a></li>
+  						<li><a href="{% url 'team' 'flames' %}">Flames</a></li>
+  						<li><a href="{% url 'team' 'crocs' %}">Crocs</a></li>
+  						<li><a href="{% url 'team' 'zombies' %}">Zombies</a></li>
+  						<li><a href="{% url 'team' 'pilgrims'%}">Pilgrims</a></li>
 
   					</ul>
 				</li>
@@ -66,20 +67,26 @@
         <div class="tickercontainer">
             <div class="mask">
                 <ul id="webticker" class="newsticker">
-                    <li>Team 1 vs Team 2</li>
-                    <li>Team 3 vs Team 4</li>
-                    <li>Team 5 vs Team 6</li>
+                    {% for game in finished_games %}
+                    <li><a href="{% url 'game' game.id %}">{{ game|game_verbose }}</a></li>
+                    {% endfor %}
+                    <li>Week {{ season.week }}</li>
+                    {% for game in next_games %}
+                    <li><a href="{% url 'game' game.id %}">{{ game|game_verbose }}</a></li>
+                    {% endfor %}
                 </ul>
             </div>
         </div>
 	</div>
 	<div class="col-md-1"></div>
-    <!--script type="text/javascript">
+    {% if ticker_enabled %}
+    <script type="text/javascript">
         window.onload = function() {
 
             jQuery("#webticker").webTicker({duplicate: true, startEmpty:false});
         }
-    </script-->
+    </script>
+    {% endif %}
 	{% endblock %}
 	<div class="container">
 		{% block content %}{% endblock %}

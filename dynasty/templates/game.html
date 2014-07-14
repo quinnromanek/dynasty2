@@ -2,7 +2,7 @@
 {% load dynasty_interface %}
 {% block content %}
 <div class="col-md-6">
-    <h3><a href="{% url 'dynasty.views.teams' %}{{ game.home_team.name|lower }}">{{ game.home_team.name }}</a></h3>
+    <h3><a href="{% url 'team' game.home_team.name|lower %}">{{ game.home_team.name }}</a></h3>
     <div class="panel panel-default">
         <table class="table table-striped">
             <thead>
@@ -40,7 +40,7 @@
 </div>
 <div class="col-md-6">
 
-    <h3><a href="{% url 'dynasty.views.teams' %}{{ game.away_team.name|lower }}">{{ game.away_team.name }}</a></h3>
+    <h3><a href="{% url 'team' game.away_team.name|lower %}">{{ game.away_team.name }}</a></h3>
     <div class="panel panel-default">
         <table class="table table-striped">
             <thead>

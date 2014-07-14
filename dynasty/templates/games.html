@@ -11,14 +11,14 @@ Week {% for week in weeks %}<a href="#week{{ forloop.counter }}">{{ forloop.coun
 
 {% for game in week %}
 {% if not game.is_finished %}
-<a href="{% url 'dynasty.views.teams' %}{{ game.away_team.name|lower }}">{{ game.away_team.name }}</a> @
-<a href="{% url 'dynasty.views.teams' %}{{ game.home_team.name|lower }}">{{ game.home_team.name }}</a>
-(<a href="{% url 'dynasty.views.games' %}{{ game.id }}">Box Score</a>)<br>
+<a href="{% url 'team' game.away_team.name|lower %}">{{ game.away_team.name }}</a> @
+<a href="{% url 'team' game.home_team.name|lower %}">{{ game.home_team.name }}</a>
+(<a href="{% url 'game' game.id %}">Box Score</a>)<br>
 {% else %}
-<a href="{% url 'dynasty.views.teams' %}{{ game.away_team.name|lower }}">{{ game.away_team.name }} {{ game.awayScore }}</a> @
-<a href="{% url 'dynasty.views.teams' %}{{ game.home_team.name|lower }}">{{ game.homeScore }} {{ game.home_team.name }}</a>
+<a href="{% url 'team' game.away_team.name|lower %}">{{ game.away_team.name }} {{ game.awayScore }}</a> @
+<a href="{% url 'team' game.home_team.name|lower %}">{{ game.homeScore }} {{ game.home_team.name }}</a>
 
-(<a href="{% url 'dynasty.views.games' %}{{ game.id }}">Box Score</a>)<br>
+(<a href="{% url 'game' game.id %}">Box Score</a>)<br>
 {% endif %}
 {% endfor %}
 {% endfor %}

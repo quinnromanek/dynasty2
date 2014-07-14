@@ -14,7 +14,7 @@
 			<tbody>
 				{% for team in divs.0 %}
 				<tr>
-					<td><a href="{% url 'dynasty.views.teams' %}{{ team.name|lower }}">{{ team.name }}</a></td>
+					<td><a href="{% url 'team' team.name|lower %}">{{ team.name }}</a></td>
 					<td>{{ team.win_pct|floatformat:3 }}</td>
 					<td>{{ team.wins }}</td>
 					<td>{{ team.losses }}</td>
@@ -30,7 +30,7 @@
 			<tbody>
 				{% for team in divs.1 %}
 				<tr>
-					<td><a href="{% url 'dynasty.views.teams' %}{{ team.name|lower }}">{{ team.name }}</a></td>
+					<td><a href="{% url 'team' team.name|lower %}">{{ team.name }}</a></td>
 					<td>{{ team.win_pct|floatformat:3 }}</td>
 					<td>{{ team.wins }}</td>
 					<td>{{ team.losses }}</td>

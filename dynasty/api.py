@@ -1,4 +1,5 @@
-from tastypie.constants import ALL
+from tastypie.authorization import Authorization
+from tastypie.constants import ALL, ALL_WITH_RELATIONS
 
 __author__ = 'flex109'
 
@@ -22,12 +23,13 @@ class PlayerResource(ModelResource):
     class Meta:
         queryset = Player.objects.all()
         filtering = {
-
+            'team':ALL_WITH_RELATIONS
         }
         ordering = ['name', 'age', 'defense',
                     'offense', 'athletics', 'primary_position',
                     'secondary_position', 'team', 'roster',
                     'minutes']
+        authorization = Authorization()
 
 
 class GameResource(ModelResource):
