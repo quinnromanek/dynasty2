@@ -4,11 +4,11 @@ from django.http import HttpResponse
 from dynasty.models import Player, Team, Game, PlayerStats, Season
 from django.db.models import Q
 from django.views.generic import TemplateView
+from dynasty.models.game import season_games
 from dynasty2.settings import STATIC_URL
 
 
 class DynastyView(TemplateView):
-
     def get_context_data(self, **kwargs):
         context = super(DynastyView, self).get_context_data(**kwargs)
         season = Season.objects.get(name="main")
@@ -16,9 +16,11 @@ class DynastyView(TemplateView):
         if season is not None:
             context['season'] = season
             context['static_url'] = STATIC_URL
-            context['finished_games'] = Game.objects.filter(week=season.week-1, season=season.year) if season.week > 0 else []
+            context['finished_games'] = Game.objects.filter(week=season.week - 1,
+                                                            season=season.year) if season.week > 0 else []
             context['next_games'] = Game.objects.filter(week=season.week, season=season.year)
         return context
+
 
 # Create your views here.
 
@@ -26,14 +28,13 @@ def index(request):
     return render(request, 'index.html')
 
 
-
 class TeamView(DynastyView):
-
     template_name = 'team.html'
 
     def get_context_data(self, **kwargs):
         context = super(TeamView, self).get_context_data(**kwargs)
         context['team'] = get_object_or_404(Team, name=context['team_name'].capitalize())
+        context['season_games'] = season_games(context['team'])
         return context
 
 
@@ -45,8 +46,8 @@ def teams(request):
 
     return render(request, 'teams.html', {'divs': divs})
 
-class TeamsView(DynastyView):
 
+class TeamsView(DynastyView):
     template_name = 'teams.html'
 
     def get_context_data(self, **kwargs):
@@ -70,8 +71,8 @@ def games(request):
 
     return render(request, 'games.html', {'weeks': weeks})
 
-class GamesView(DynastyView):
 
+class GamesView(DynastyView):
     template_name = 'games.html'
 
     def get_context_data(self, **kwargs):
@@ -91,11 +92,10 @@ def game(request, game_id):
         home_stats = PlayerStats.objects.filter(Q(game__id=game_id) & Q(team=current_game.home_team)).order_by("roster")
         away_stats = PlayerStats.objects.filter(Q(game__id=game_id) & Q(team=current_game.away_team)).order_by("roster")
 
-    return render(request, 'game.html', {'game':current_game, "home_stats":home_stats, "away_stats":away_stats})
+    return render(request, 'game.html', {'game': current_game, "home_stats": home_stats, "away_stats": away_stats})
+
 
 class GameView(DynastyView):
-
-
     template_name = 'game.html'
 
     def get_context_data(self, **kwargs):
@@ -105,8 +105,10 @@ class GameView(DynastyView):
         home_stats = []
         away_stats = []
         if current_game.is_finished():
-            home_stats = PlayerStats.objects.filter(Q(game__id=game_id) & Q(team=current_game.home_team)).order_by("roster")
-            away_stats = PlayerStats.objects.filter(Q(game__id=game_id) & Q(team=current_game.away_team)).order_by("roster")
+            home_stats = PlayerStats.objects.filter(Q(game__id=game_id) & Q(team=current_game.home_team)).order_by(
+                "roster")
+            away_stats = PlayerStats.objects.filter(Q(game__id=game_id) & Q(team=current_game.away_team)).order_by(
+                "roster")
         home_stats = list(home_stats)
         away_stats = list(away_stats)
         home_stats = home_stats[-5:] + home_stats[:-5]
@@ -118,14 +120,14 @@ class GameView(DynastyView):
 
 
 class PlayerView(DynastyView):
-     template_name = "player.html"
+    template_name = "player.html"
 
-     def get_context_data(self, **kwargs):
-         context = super(PlayerView, self).get_context_data(**kwargs)
-         player_id = context['player_id']
-         player = get_object_or_404(Player, id=player_id)
-         context['player'] = player
-         return context
+    def get_context_data(self, **kwargs):
+        context = super(PlayerView, self).get_context_data(**kwargs)
+        player_id = context['player_id']
+        player = get_object_or_404(Player, id=player_id)
+        context['player'] = player
+        return context
 
 
 class PlayersView(DynastyView):

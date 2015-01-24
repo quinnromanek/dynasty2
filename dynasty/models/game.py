@@ -1,101 +1,11 @@
-from random import randrange, random
-from django.db import models
 from math import ceil
+from random import random, randrange
 from django.db.models import Q
-from templatetags.dynasty_interface import position_short
+from django.db import models
+from dynasty.models.player import Player
+from dynasty.models.team import Team
 
-
-def position_string(pos):
-    arr = ["Null", "PG", "SG", "SF", "PF", "C"]
-    return arr[pos]
-
-
-class Season(models.Model):
-    week = models.IntegerField(default=0)
-    year = models.IntegerField(default=0)
-    name = models.CharField(max_length=50)
-
-
-class Team(models.Model):
-    name = models.CharField(max_length=50)
-    wins = models.IntegerField(default=0)
-    losses = models.IntegerField(default=0)
-    division = models.IntegerField(default=0)
-
-    def __unicode__(self):
-        return "{0} ({1}-{2})".format(self.name, self.wins, self.losses)
-
-    def win_pct(self):
-        try:
-            return float(self.wins) / (float(self.wins + self.losses))
-        except ZeroDivisionError:
-            return 0
-
-    def starters(self):
-        """ Should only be called after validating roster. """
-        s = []
-        for pos in range(1, 6):
-            s.append(self.player_set.get(roster=pos))
-        return s
-
-    def bench(self):
-        b = list(self.player_set.filter(roster=0))
-        return b
-
-
-    def season_games(self):
-        return Game.objects.filter(Q(away_team__id=self.id) | Q(home_team__id=self.id)).order_by('week')
-
-
-class Player(models.Model):
-    name = models.CharField(max_length=100)
-    age = models.IntegerField(default=1)
-    defense = models.IntegerField(default=1)
-    offense = models.IntegerField(default=1)
-    athletics = models.IntegerField(default=1)
-    primary_position = models.IntegerField(default=0)
-    secondary_position = models.IntegerField(default=0)
-    team = models.ForeignKey(Team)
-    roster = models.IntegerField('starting position or bench', default=0)
-    minutes = models.IntegerField(default=0)
-
-    def __unicode__(self):
-        return "{0} {1}".format(self.name, position_short(self.primary_position) if self.secondary_position == 0 else
-        position_short(self.primary_position) + "|" + position_short(self.secondary_position))
-
-    def get_shot(self, defender, quarter, time_left):
-        pass
-
-    def has_position(self, pos):
-        return pos == self.primary_position or pos == self.secondary_position
-
-    def min_at_pos(self, pos):
-        if pos == self.primary_position:
-            return self.get_primary_minutes()
-        elif pos == self.secondary_position:
-            return self.get_secondary_minutes()
-        else:
-            return 0
-
-    def shot_tendency(self):
-        return 0.5
-
-    def get_primary_minutes(self):
-        return self.minutes / 25
-
-    def get_secondary_minutes(self):
-        return self.minutes % 25
-
-    def set_primary_minutes(self, mins):
-        self.minutes = mins * 25 + self.get_secondary_minutes()
-        self.save()
-
-    def set_secondary_minutes(self, mins):
-        self.minutes = mins + self.get_primary_minutes() * 25
-        self.save()
-
-    def get_all_minutes(self):
-        return self.get_primary_minutes() + self.get_secondary_minutes()
+__author__ = 'flex109'
 
 
 class GameTeam:
@@ -214,12 +124,16 @@ class GameTeam:
 
 
 class Game(models.Model):
-    home_team = models.ForeignKey(Team, related_name="home_game")
-    away_team = models.ForeignKey(Team, related_name="away_game")
+    home_team = models.ForeignKey('dynasty.team', related_name="home_game")
+    away_team = models.ForeignKey('dynasty.team', related_name="away_game")
     homeScore = models.IntegerField(default=0)
     awayScore = models.IntegerField(default=0)
     week = models.IntegerField(default=0)
     season = models.IntegerField(default=0)
+
+    class Meta:
+        app_label = "dynasty"
+        db_table = "dynasty_game"
 
     def __unicode__(self):
         return "{0} vs {1} : Week {2}".format(self.away_team.name, self.home_team.name, self.week)
@@ -288,7 +202,6 @@ class Game(models.Model):
             if self.clock - roll < 0.0:
                 self.clock = quarter_length
                 self.quarter += 1
-                print("End of quarter {0}".format(self.quarter - 1))
             if self.quarter > 4 and self.homeScore != self.awayScore:
                 end = True
             if self.minutes() > self.minute and not end:
@@ -301,7 +214,6 @@ class Game(models.Model):
         player_poss = 0
         team_poss = get_tipoff()
         self.clock -= roll
-        print("Game: {0} vs {1}".format(self.home_team.name, self.away_team.name))
         while True:
             p_steal = 0.05 * steal(team_poss[player_poss].offense,
                                    switch_team(team_poss)[player_poss].defense)
@@ -374,7 +286,7 @@ class Game(models.Model):
 
 
 class PlayerStats(models.Model):
-    player = models.ForeignKey(Player)
+    player = models.ForeignKey('dynasty.player')
     game = models.ForeignKey(Game)
     roster = models.IntegerField(default=0)
     team = models.ForeignKey(Team)
@@ -396,9 +308,15 @@ class PlayerStats(models.Model):
     def __unicode__(self):
         return "{0} %: {1} Stl: {2} Pts: {3}".format(self.player.name, self.fg_pct(), self.steals, self.points())
 
+    class Meta:
+        app_label = "dynasty"
+        db_table = "dynasty_playerstats"
+
 
 def log_game(player, game, team, data):
     obj = PlayerStats.objects.create(player=player, game=game, roster=player.roster, team=team,
                                      field_goals=data[0], field_goals_attempted=data[1], rebounds=data[2],
                                      steals=data[3], minutes=player.get_all_minutes())
 
+def season_games(team):
+    return Game.objects.filter(Q(away_team__id=team.id) | Q(home_team__id=team.id)).order_by('week')

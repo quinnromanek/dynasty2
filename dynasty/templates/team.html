@@ -61,7 +61,7 @@
 	</table>
   </div>
   <div class="tab-pane" id="schedule">
-  	{% for game in team.season_games %}
+  	{% for game in season_games %}
   	week {{ forloop.counter }}: <a href="{% url 'team' game.away_team.name|lower %}">{{ game.away_team.name }}</a> @
 	<a href="{% url 'team' game.home_team.name|lower %}">{{ game.home_team.name }}</a><br>
   	{% endfor %}
