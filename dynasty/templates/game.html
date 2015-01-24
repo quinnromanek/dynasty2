@@ -6,7 +6,7 @@
     <div class="panel panel-default">
         <table class="table table-striped">
             <thead>
-            <tr><td>Player</td><td>Position</td><td>FG M/A</td><td>Steals</td><td>Points</td></tr>
+            <tr><td>Player</td><td>Position</td><td>Min</td><td>FG M/A</td><td>Steals</td><td>Rebounds</td><td>Points</td></tr>
             </thead>
             <tbody>
 
@@ -14,8 +14,10 @@
             <tr>
                 <td>{{ stat.player.name }}</td>
                 <td>{{ stat.player.primary_position|position_short }}</td>
+                <td>{{ stat.minutes }}</td>
                 <td>{{ stat.field_goals }}/{{ stat.field_goals_attempted }}</td>
                 <td>{{ stat.steals }}</td>
+                <td>{{ stat.rebounds }}</td>
                 <td>{{ stat.points }}</td>
             </tr>
             {% empty %}
@@ -31,7 +33,7 @@
             {% endfor %}
                 <tr>
                     <td>Total</td>
-                    <td></td><td></td><td></td>
+                    <td></td><td></td><td></td><td></td><td></td>
                     <td>{{ game.homeScore }}</td>
                 </tr>
             </tbody>
@@ -44,15 +46,17 @@
     <div class="panel panel-default">
         <table class="table table-striped">
             <thead>
-            <tr><td>Player</td><td>Position</td><td>FG M/A</td><td>Steals</td><td>Points</td></tr>
+            <tr><td>Player</td><td>Position</td><td>Min</td><td>FG M/A</td><td>Steals</td><td>Rebounds</td><td>Points</td></tr>
             </thead>
             <tbody>
             {% for stat in away_stats %}
             <tr>
                 <td>{{ stat.player.name }}</td>
                 <td>{{ stat.player.primary_position|position_short }}</td>
+                <td>{{ stat.minutes }}</td>
                 <td>{{ stat.field_goals }}/{{ stat.field_goals_attempted }}</td>
                 <td>{{ stat.steals }}</td>
+                <td>{{ stat.rebounds }}</td>
                 <td>{{ stat.points }}</td>
             </tr>
             {% empty %}
@@ -68,7 +72,7 @@
             {% endfor %}
             <tr>
                 <td>Total</td>
-                <td></td><td></td><td></td>
+                <td></td><td></td><td></td><td></td><td></td>
                 <td>{{ game.awayScore }}</td>
             </tr>
             </tbody>

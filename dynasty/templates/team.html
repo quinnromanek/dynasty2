@@ -23,7 +23,7 @@
 		<td>Pos</td>
 		<td>Name</td>
 		<td>Position</td>
-		
+	    <td>Min</td>
 		<td>Off</td>
 		<td>Def</td>
 		<td>Ath</td>
@@ -36,7 +36,7 @@
 		<td>{{ forloop.counter|position_short }}</td>
 		<td>{{ player.name }}</td>
 		<td>{{ player.primary_position|position_short }}{% if player.secondary_position != 0 %}|{{ player.secondary_position|position_short }}{% endif %}</td>
-		
+	    <td>{{ player.get_all_minutes }}</td>
 		<td>{{ player.offense }}</td>
 		<td>{{ player.defense }}</td>
 		<td>{{ player.athletics }}</td>
@@ -49,7 +49,7 @@
 		<td>BN</td>
 		<td>{{ player.name }}</td>
 		<td>{{ player.primary_position|position_short }}{% if player.secondary_position != 0 %}|{{ player.secondary_position|position_short }}{% endif %}</td>
-		
+	    <td>{{ player.get_all_minutes }}</td>
 		<td>{{ player.offense }}</td>
 		<td>{{ player.defense }}</td>
 		<td>{{ player.athletics }}</td>

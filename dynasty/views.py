@@ -1,3 +1,4 @@
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from dynasty.models import Player, Team, Game, PlayerStats, Season
@@ -106,10 +107,15 @@ class GameView(DynastyView):
         if current_game.is_finished():
             home_stats = PlayerStats.objects.filter(Q(game__id=game_id) & Q(team=current_game.home_team)).order_by("roster")
             away_stats = PlayerStats.objects.filter(Q(game__id=game_id) & Q(team=current_game.away_team)).order_by("roster")
+        home_stats = list(home_stats)
+        away_stats = list(away_stats)
+        home_stats = home_stats[-5:] + home_stats[:-5]
+        away_stats = away_stats[-5:] + away_stats[:-5]
         context['game'] = current_game
         context['home_stats'] = home_stats
         context['away_stats'] = away_stats
         return context
+
 
 class PlayerView(DynastyView):
      template_name = "player.html"
@@ -120,3 +126,40 @@ class PlayerView(DynastyView):
          player = get_object_or_404(Player, id=player_id)
          context['player'] = player
          return context
+
+
+class PlayersView(DynastyView):
+    template_name = "players.html"
+
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+
+        player_list = Player.objects.all().order_by("-offense")
+        paginator = Paginator(player_list, 25)
+
+        page = request.GET.get('page')
+        if page is None:
+            page = 1
+        right_button = int(page) < paginator.num_pages
+        left_button = int(page) > 1
+        try:
+            players = paginator.page(page)
+        except PageNotAnInteger:
+            players = paginator.page(1)
+            page = 1
+            left_button = False
+        except EmptyPage:
+            players = paginator.page(paginator.num_pages)
+            page = paginator.num_pages
+            right_button = False
+
+        context['players'] = players
+        context['page'] = int(page)
+        context['page_range'] = paginator.page_range
+        context['num_pages'] = paginator.num_pages
+
+        return self.render_to_response(context)
+
+
+

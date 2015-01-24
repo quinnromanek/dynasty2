@@ -10,7 +10,7 @@ teams = [
     ["Dragons", "Warriors", "Nova", "Diamond"],
     ["Flames", "Crocs", "Zombies", "Pilgrims"]
 ]
-fnames = ["George", "James", "Clint",
+fnames = ["George", "James", "Clint", "Alex", "Alexander",
           "Fred", "Tom", "Abraham", "Gustav", "Joseph", "Andrew", "Zach",
           "Michael", "Eric", "Matthew", "Daniel", "Brandon", "Liam", "Lewis",
           "Andre", "Frank", "Asher", "LaRon", "Chris", "Nick", "Patrick",
@@ -18,7 +18,7 @@ fnames = ["George", "James", "Clint",
           "Stephen", "Sam", "Samuel", "Sammy", "Mike", "Sebastian", "Lee", "Ming", "Tao", "Jose",
           "Eduardo", "Jim", "Jimmy", "D.J", "Allen", "Ray", "Griffin", "Quinn", "Louis", "Lou", "Will",
           "William", "Willie", "Raymond", "Connor", "C.J", "Ethan", "Carter", "John", "Johnny", "Mitchell",
-          "Francisco", "Jamie", "Victor", "Paul", "Harry", "Harrison", "Noah", "Desmond", "Ryan", "Weston"  # 72
+          "Francisco", "Jamie", "Victor", "Paul", "Harry", "Harrison", "Noah", "Desmond", "Ryan", "Weston"  # 74
 ]
 lnames = [
     "Bradley", "Marshall", "Gordon",
@@ -143,12 +143,13 @@ def create_random_player(team, age=1, position=0, roster=0):
         position = randrange(5) + 1
     name = fnames[randrange(len(fnames))] + " " + lnames[randrange(len(lnames))]
     s_position = get_secondary_position(position)
-    skill =  get_binomial_result(1, 10, 0.4)
-    shooting = get_binomial_result(1, 10, 0.4)
-    stamina = get_binomial_result(1, 10, 0.4)
+    skill =  get_binomial_result(1, 10, 0.35)
+    shooting = get_binomial_result(1, 10, 0.35)
+    stamina = get_binomial_result(1, 10, 0.35)
     Player.objects.create(name=name, primary_position=position, secondary_position=s_position, defense=skill,
                           offense=shooting,
                           athletics=stamina, age=age, team=team, roster=roster)
+
 
 
 def generate_team(team):
@@ -156,6 +157,36 @@ def generate_team(team):
         create_random_player(team=team, position=starter, roster=starter)
     for player in range(7):
         create_random_player(team=team)
+
+    starters = team.starters()
+    for i in range(len(starters)):
+        if starters[i].primary_position - 1 == i:
+            starters[i].set_primary_minutes(18)
+        else:
+            starters[i].set_secondary_minutes(18)
+
+    bench = team.bench()
+    sub_minutes = [0]*5
+    for i in range(len(sub_minutes)):
+        found = False
+        for player in bench:
+            if player.primary_position - 1 == i:
+                player.set_primary_minutes(6)
+                found = True
+                break
+            if player.secondary_position - 1 == i:
+                player.set_secondary_minutes(6)
+                found = True
+                break
+        if found:
+            continue
+        else:
+
+            if starters[i].primary_position - 1 == i:
+                starters[i].set_primary_minutes(24)
+            else:
+                starters[i].set_secondary_minutes(24)
+
 
 
 def generate_players_for_teams():

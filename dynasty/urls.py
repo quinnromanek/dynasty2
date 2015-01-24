@@ -13,7 +13,7 @@ urlpatterns = patterns('',
                        url(r'^$', views.DynastyView.as_view(template_name="index.html"), name='index'),
                        url(r'^teams/(?P<team_name>\w+)', views.TeamView.as_view(), name='team'),
                        url(r'^teams/', views.TeamsView.as_view(), name='teams'),
-                       url(r'^players/', views.players),
+                       url(r'^players/', views.PlayersView.as_view(), name='players'),
                        url(r'^games/(?P<game_id>\d+)', views.GameView.as_view(), name="game"),
                        url(r'^games/', views.GamesView.as_view(), name="games"),
                        url(r'^service/', include(beta_api.urls))
