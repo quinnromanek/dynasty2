@@ -1,7 +1,9 @@
 from dynasty.models import Team, Player, Game, Season, PlayerStats
 from django.core.management.base import BaseCommand, CommandError
-from random import randrange, shuffle
+from random import randrange, shuffle, gauss
 from itertools import combinations
+from dynasty.models.player import pack_values
+from dynasty.models.team import set_best_rotation
 from dynasty.utils import get_binomial_result
 
 teams = [
@@ -138,6 +140,7 @@ def get_secondary_position(primary_position):
     return secondary_position
 
 
+
 def create_random_player(team, age=1, position=0, roster=0):
     if position == 0:
         position = randrange(5) + 1
@@ -145,10 +148,28 @@ def create_random_player(team, age=1, position=0, roster=0):
     s_position = get_secondary_position(position)
     skill =  get_binomial_result(1, 10, 0.35)
     shooting = get_binomial_result(1, 10, 0.35)
+    athletics = get_binomial_result(1, 10, 0.35)
     stamina = get_binomial_result(1, 10, 0.35)
-    Player.objects.create(name=name, primary_position=position, secondary_position=s_position, defense=skill,
-                          offense=shooting,
-                          athletics=stamina, age=age, team=team, roster=roster)
+
+    attrs = [skill, shooting, athletics, stamina]
+    amplitudes = []
+    for i in xrange(len(attrs)):
+        # Growth amplitude
+        amplitudes.append(get_binomial_result(0, 10 - attrs[i], 0.4))
+        peak = attrs[i] + amplitudes[-1]
+        amplitudes.append(get_binomial_result(0, peak-1, 0.4))
+
+
+
+    player = Player.objects.create(name=name, primary_position=position, secondary_position=s_position, defense=shooting,
+                          offense=skill, prime_year=randrange(6, 11),
+                          improvement_curves=pack_values([randrange(3) for _ in xrange(8)], 3),
+                          improvement_amplitudes=pack_values(amplitudes, 11),
+                          number=randrange(99),
+                          tendency=gauss(0.0, 0.15),
+                          athletics=athletics, stamina=stamina, age=age, team=team, roster=roster)
+
+    return player
 
 
 
@@ -158,34 +179,7 @@ def generate_team(team):
     for player in range(7):
         create_random_player(team=team)
 
-    starters = team.starters()
-    for i in range(len(starters)):
-        if starters[i].primary_position - 1 == i:
-            starters[i].set_primary_minutes(18)
-        else:
-            starters[i].set_secondary_minutes(18)
-
-    bench = team.bench()
-    sub_minutes = [0]*5
-    for i in range(len(sub_minutes)):
-        found = False
-        for player in bench:
-            if player.primary_position - 1 == i:
-                player.set_primary_minutes(6)
-                found = True
-                break
-            if player.secondary_position - 1 == i:
-                player.set_secondary_minutes(6)
-                found = True
-                break
-        if found:
-            continue
-        else:
-
-            if starters[i].primary_position - 1 == i:
-                starters[i].set_primary_minutes(24)
-            else:
-                starters[i].set_secondary_minutes(24)
+    set_best_rotation(team)
 
 
 

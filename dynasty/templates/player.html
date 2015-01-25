@@ -11,6 +11,8 @@
             <strong>Team:</strong> <a href="{% url 'team' player.team.name|lower %}">{{ player.team.name }}</a><br>
             <strong>Years:</strong> {{ player.age }}<br>
             <strong>Attrs:</strong> O|{{ player.offense}} D|{{ player.defense }} A|{{ player.athletics }}<br>
+            <strong>Tendency: </strong> {{ player.tendency|tendency_description }}<br>
+            <strong>Fatigue: </strong> {{ player.fatigue|fatigue_description }}
         </div>
     </div>
 </div>

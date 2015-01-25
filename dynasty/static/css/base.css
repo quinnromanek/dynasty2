@@ -30,6 +30,15 @@ tbody td {
 	table-layout: fixed;
 }
 
+span.fatigue {
+    font-weight: bold;
+    color: red;
+}
+span.rest {
+    font-weight: bold;
+    color: green
+}
+
 /* THIS SHIT */
 .tickercontainer { /* the outer div with the black border */
 height: 40px;

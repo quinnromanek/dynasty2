@@ -1,9 +1,9 @@
 from math import ceil
-from random import random, randrange
+from random import random, randrange, choice
 from django.db.models import Q
 from django.db import models
 from dynasty.models.player import Player
-from dynasty.models.team import Team
+from dynasty.models.team import Team, find_rotation
 
 __author__ = 'flex109'
 
@@ -27,65 +27,7 @@ class GameTeam:
         return self.full_team[self.on_court[item]]
 
     def find_rotation(self):
-
-        def check_rotation(rotation, time, time_played):
-            time = min([sum([stint[1] for stint in pos]) for pos in rotation])
-            if time == 24:
-                return rotation
-            # Check for lineup hash here
-            for position in range(5):
-                if time == sum([stint[1] for stint in rotation[position]]):
-                    # Then it's time to sub!
-                    new_time_played = time_played[:]
-                    current_player_index, current_stint = rotation[position][len(rotation[position]) - 1]
-                    current_player = self.full_team[current_player_index]
-                    cpi = current_player_index
-                    tp, ts = time_played[cpi]
-                    new_time_played[cpi] = (
-                        (tp + current_stint), ts) if current_player.primary_position - 1 == position else \
-                        (tp, (ts + current_stint))
-                    players_in = [pos[-1][0] for pos in rotation]
-
-                    result = None
-                    for player_index in xrange(len(self.full_team)):
-                        player = self.full_team[player_index]
-                        if player_index in players_in and sum(
-                                [stint[1] for stint in rotation[players_in.index(player_index)][:-1]]) == time:
-                            continue
-
-                        if player.has_position(position + 1) and new_time_played[player_index][
-                            0 if player.primary_position - 1 == position else 1] < player.min_at_pos(position + 1):
-                            new_rotation = rotation[:]
-                            new_rotation[position] = new_rotation[position] + (
-                                (player_index, player.min_at_pos(position + 1) - new_time_played[player_index][
-                                    0 if player.primary_position - 1 == position else 1
-                                ]),)
-
-                            if player_index in players_in and sum(
-                                    [stint[1] for stint in rotation[players_in.index(player_index)]]) > time:
-                                player_pos = players_in.index(player_index)
-                                time_diff = time - sum(stint[1] for stint in rotation[player_pos][:-1])
-                                new_rotation[player_pos] = new_rotation[player_pos][:-1] + ((player_index, time_diff),)
-                                tp, ts = new_time_played[player_index]
-                                new_time_played[player_index] = (
-                                    (tp + time_diff), ts) if player.primary_position - 1 == player_pos \
-                                    else (tp, (ts + time_diff))
-
-                            check = check_rotation(new_rotation, time, new_time_played)
-                            if check is not None:
-                                result = check
-
-                    return result
-
-
-        rotation = []
-
-        for i in range(5):
-            rotation.append(((i, self.full_team[i].min_at_pos(i + 1) / 2),))
-
-        time_played = [(0, 0) for i in xrange(len(self.full_team))]
-
-        return check_rotation(rotation, 0, time_played)
+        return find_rotation(self.team)
 
 
     def log_stat(self, type, player):
@@ -121,6 +63,8 @@ class GameTeam:
         for i in range(len(self.full_team)):
             if self.full_team[i].get_all_minutes() > 0:
                 log_game(self.full_team[i], self.game, self.team, self.stats[i])
+
+
 
 
 class Game(models.Model):
@@ -217,7 +161,7 @@ class Game(models.Model):
         while True:
             p_steal = 0.05 * steal(team_poss[player_poss].offense,
                                    switch_team(team_poss)[player_poss].defense)
-            p_shot = (0.25 + 0.5 * (team_poss[player_poss].shot_tendency())) * (1.0 - p_steal)
+            p_shot = (0.25 + 0.5 * (team_poss[player_poss].shot_tendency(player_poss + 1))) * (1.0 - p_steal)
             p_pass = 1 - p_shot - p_steal
 
             main_roll = random()
@@ -232,7 +176,7 @@ class Game(models.Model):
                 log_stat("steal", team_poss, player_poss)
             elif main_roll > p_shot:
                 # Pass
-                target = (player_poss + randrange(3) + 1) % 5
+                target = (player_poss + randrange(4) + 1) % 5
 
                 if random() <= 0.05 * (
                         steal(avg(team_poss[player_poss].offense, team_poss[target].offense),
@@ -249,18 +193,33 @@ class Game(models.Model):
 
             else:
                 # Shot
-                if random() > 0.35 + 0.35 * shot(team_poss[player_poss].offense,
+                fatigue_factor = (max(0.0, float(team_poss[player_poss].fatigue)) - max(0.0, float(switch_team(team_poss)[player_poss].fatigue)))/500.0
+                if random() > 0.4 - fatigue_factor \
+                                + 0.4 * shot(team_poss[player_poss].offense,
                                                  switch_team(team_poss)[player_poss].defense):
                     # Rebound
                     # Placeholder for rebounding logic
                     log_stat("miss", team_poss, player_poss)
-                    if random() > 0.75:
+                    reb_choices = []
+                    for team in range(2):
+                        team_data = team_poss if team == 0 else switch_team(team_poss)
+                        for pos in range(5):
+                            number = team*5 + pos
+                            if number == player_poss:
+                                reb_choices += [number]
+                            elif pos in [0, 1]:
+                                reb_choices += [number]*(team_data[pos].athletics)
+                            elif pos == 2:
+                                reb_choices += [number]*(team_data[pos].athletics*2)
+                            else:
+                                reb_choices += [number]*(team_data[pos].athletics*3)
+
+                    winner = choice(reb_choices)
+                    if winner > 4:
                         team_poss = switch_team(team_poss)
-                        player_poss = 0
-                        log_stat("rebound", team_poss, player_poss)
-                    else:
-                        player_poss = 3 if random() > 0.6 else 4
-                        log_stat("rebound", team_poss, player_poss)
+                        winner -= 5
+                    player_poss = winner
+                    log_stat("rebound", team_poss, player_poss)
 
                     end = do_roll()
                     if end:
@@ -320,6 +279,12 @@ class PlayerStats(models.Model):
 
 
 def log_game(player, game, team, data):
+    player.fatigue += player.get_all_minutes() - player.max_minutes()
+    if player.fatigue < -5:
+        player.fatigue = -5
+    if player.fatigue > 50:
+        player.fatigue = 50
+    player.save()
     obj = PlayerStats.objects.create(player=player, game=game, roster=player.roster, team=team,
                                      field_goals=data[0], field_goals_attempted=data[1], rebounds=data[2],
                                      steals=data[3], minutes=player.get_all_minutes())

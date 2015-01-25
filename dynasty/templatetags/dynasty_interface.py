@@ -38,6 +38,41 @@ def game_verbose(game):
     else:
         return "{0} - {1}".format(game.home_team.name, game.away_team.name)
 
+@register.filter
+def tendency_description(tendency):
+    if tendency < -0.25:
+        return "Passive"
+    elif tendency < 0:
+        return "Pass-first"
+    elif tendency < 0.25:
+        return "Shoot-first"
+    else:
+        return "Black Hole"
+
+@register.filter
+def fatigue_description(fatigue):
+    if fatigue < 0:
+       return "Rested"
+    if fatigue < 5:
+        return "Fresh"
+    elif fatigue < 15:
+        return "Sore"
+    elif fatigue < 30:
+        return "Tired"
+    else:
+        return "Exhausted"
+
+@register.filter
+def minute_color(player):
+    if player.get_all_minutes() > player.max_minutes():
+        return "fatigue"
+    elif player.get_all_minutes() < player.max_minutes():
+        return "rest"
+    else:
+        return ""
+
+
+
 ###### Quick ways to generate model links ######
 @register.filter()
 def game_links(game):

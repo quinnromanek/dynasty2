@@ -1,7 +1,9 @@
+from dynasty.templatetags.dynasty_interface import position_short
+
 __author__ = 'Quinn Romanek'
 
 from django.test import TestCase
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from dynasty.models import Team, Player, Game, PlayerStats
 from dynasty.management.commands.teams_init import create_random_player, generate_team
 
@@ -41,8 +43,10 @@ class GameTestCase(TestCase):
     def test_better_team_wins(self):
         Player.objects.all().delete()
         for pos in range(1, 6):
-            Player.objects.create(defense=10, offense=10, athletics=10, primary_position=pos, roster=pos, team=self.ringers)
-            Player.objects.create(defense=5, offense=5, athletics=5, primary_position=pos, roster=pos, team=self.ballers)
+            p1 = Player.objects.create(defense=10, offense=10, athletics=10, primary_position=pos, roster=pos, team=self.ringers)
+            p1.set_primary_minutes(24)
+            p2 = Player.objects.create(defense=5, offense=5, athletics=5, primary_position=pos, roster=pos, team=self.ballers)
+            p2.set_primary_minutes(24)
 
         times = 0
         for trial in range(100):
@@ -69,4 +73,26 @@ class GameTestCase(TestCase):
         total_points = stats.aggregate(points=Sum('field_goals'))['points']
 
         self.assertEqual(total_points*2, game.awayScore)
+
+    def test_pass_balancing(self):
+        Player.objects.all().delete()
+        Game.objects.all().delete()
+        PlayerStats.objects.all().delete()
+        for pos in range(1, 6):
+            p1 = Player.objects.create(defense=5, offense=5, athletics=5, primary_position=pos, roster=pos, team=self.ringers)
+            p1.set_primary_minutes(24)
+            p2 = Player.objects.create(defense=5, offense=5, athletics=5, primary_position=pos, roster=pos, team=self.ballers)
+            p2.set_primary_minutes(24)
+        shot_attempts = [0, 0, 0, 0, 0]
+        for trial in range(100):
+            game = Game.objects.create(home_team=self.ringers, away_team=self.ballers)
+            game.play()
+            for pos in range(1, 6):
+                shot_attempts[pos - 1] += PlayerStats.objects.get(Q(game=game) & Q(team=self.ringers) & Q(player__roster=pos)).field_goals_attempted
+                shot_attempts[pos - 1] += PlayerStats.objects.get(Q(game=game) & Q(team=self.ballers) & Q(player__roster=pos)).field_goals_attempted
+
+        for pos in range(len(shot_attempts)):
+            print("{0}: {1}".format(position_short(pos + 1), shot_attempts[pos]))
+
+
 

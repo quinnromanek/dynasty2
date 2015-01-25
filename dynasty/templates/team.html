@@ -28,6 +28,7 @@
 		<td>Off</td>
 		<td>Def</td>
 		<td>Ath</td>
+        <td>Sta</td>
 		<td>Age</td>
         <td>Sub</td>
 	</tr>
@@ -37,10 +38,11 @@
 		<td>{{ forloop.counter|position_short }}</td>
 		<td>{{ player|player_link }}</td>
 		<td>{{ player.primary_position|position_short }}{% if player.secondary_position != 0 %}|{{ player.secondary_position|position_short }}{% endif %}</td>
-	    <td>{{ player.get_all_minutes }}</td>
+	    <td><span class="{{ player|minute_color }}">{{ player.get_all_minutes }}</span></td>
 		<td>{{ player.offense }}</td>
 		<td>{{ player.defense }}</td>
 		<td>{{ player.athletics }}</td>
+        <td>{{ player.stamina }}</td>
 		<td>{{ player.age }}</td>
         <td><button type="button" class="btn btn-default mover">Move</button></td>
 	</tr>
@@ -50,10 +52,11 @@
 		<td>BN</td>
 		<td>{{ player|player_link }}</td>
 		<td>{{ player.primary_position|position_short }}{% if player.secondary_position != 0 %}|{{ player.secondary_position|position_short }}{% endif %}</td>
-	    <td>{{ player.get_all_minutes }}</td>
+        <td><span class="{{ player|minute_color }}">{{ player.get_all_minutes }}</span></td>
 		<td>{{ player.offense }}</td>
 		<td>{{ player.defense }}</td>
 		<td>{{ player.athletics }}</td>
+        <td>{{ player.stamina }}</td>
 		<td>{{ player.age }}</td>
         <td><button type="button" class="btn btn-default mover">Move</button></td>
 	</tr>

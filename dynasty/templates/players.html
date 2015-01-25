@@ -2,20 +2,22 @@
         {% load dynasty_interface %}
 
         {% block content %}
-        <div>
-            <form method="get"><select name="team">
-                <option>All</option>
-            </select>
-            <select name="position">
-                <option>All</option>
-                <option>PG</option>
-                <option>SG</option>
-                <option>SF</option>
-                <option>PF</option>
-                <option>C</option>
-            </select>
-                <input type="submit" value="Show" />
-            </form>
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <form method="get"><select name="team">
+                    <option>All</option>
+                </select>
+                <select name="position">
+                    <option>All</option>
+                    <option>PG</option>
+                    <option>SG</option>
+                    <option>SF</option>
+                    <option>PF</option>
+                    <option>C</option>
+                </select>
+                    <input type="submit" value="Show" />
+                </form>
+            </div>
         </div>
         <table id="players" class="table table-striped table-hover table-condensed">
             <thead>
@@ -26,6 +28,7 @@
                     <td>Off</td>
                     <td>Def</td>
                     <td>Ath</td>
+                    <td>Sta</td>
                     <td>Age</td>
                     <td>Steals</td>
                     <td>Reb</td>
@@ -41,6 +44,7 @@
                     <td>{{ player.offense }}</td>
                     <td>{{ player.defense }}</td>
                     <td>{{ player.athletics }}</td>
+                    <td>{{ player.stamina }}</td>
                     <td>{{ player.age }}</td>
                     <td>{{ player.spg_season }}</td>
                     <td>{{ player.rpg_season }}</td>
