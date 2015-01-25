@@ -2,6 +2,21 @@
         {% load dynasty_interface %}
 
         {% block content %}
+        <div>
+            <form method="get"><select name="team">
+                <option>All</option>
+            </select>
+            <select name="position">
+                <option>All</option>
+                <option>PG</option>
+                <option>SG</option>
+                <option>SF</option>
+                <option>PF</option>
+                <option>C</option>
+            </select>
+                <input type="submit" value="Show" />
+            </form>
+        </div>
         <table id="players" class="table table-striped table-hover table-condensed">
             <thead>
                 <tr>
@@ -12,18 +27,24 @@
                     <td>Def</td>
                     <td>Ath</td>
                     <td>Age</td>
+                    <td>Steals</td>
+                    <td>Reb</td>
+                    <td>PPG</td>
                 </tr>
             </thead>
             <tbody>
                 {% for player in players %}
                 <tr>
                     <td>{{ player.primary_position|position_short }}{% if player.secondary_position > 0 %}|{{ player.secondary_position|position_short }}{% endif %}</td>
-                    <td>{{ player.name }}</td>
+                    <td>{{ player|player_link }}</td>
                     <td><a href="{% url 'team' player.team.name|lower %}">{{ player.team.name }}</a></td>
                     <td>{{ player.offense }}</td>
                     <td>{{ player.defense }}</td>
                     <td>{{ player.athletics }}</td>
                     <td>{{ player.age }}</td>
+                    <td>{{ player.spg_season }}</td>
+                    <td>{{ player.rpg_season }}</td>
+                    <td>{{ player.ppg_season }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

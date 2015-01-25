@@ -13,6 +13,7 @@
 <ul class="nav nav-tabs">
   <li class="active"><a href="#roster" data-toggle="tab">Roster</a></li>
   <li><a href="#schedule" data-toggle="tab">Schedule</a></li>
+  <li><a href="#stats" data-toggle="tab">Stats</a></li>
 </ul>
 
 <!-- tab panes -->
@@ -34,7 +35,7 @@
 	{% for player in team.starters %}
 	<tr id="player{{ player.id }}">
 		<td>{{ forloop.counter|position_short }}</td>
-		<td>{{ player.name }}</td>
+		<td>{{ player|player_link }}</td>
 		<td>{{ player.primary_position|position_short }}{% if player.secondary_position != 0 %}|{{ player.secondary_position|position_short }}{% endif %}</td>
 	    <td>{{ player.get_all_minutes }}</td>
 		<td>{{ player.offense }}</td>
@@ -47,7 +48,7 @@
 	{% for player in team.bench %}
 	<tr id="player{{ player.id }}">
 		<td>BN</td>
-		<td>{{ player.name }}</td>
+		<td>{{ player|player_link }}</td>
 		<td>{{ player.primary_position|position_short }}{% if player.secondary_position != 0 %}|{{ player.secondary_position|position_short }}{% endif %}</td>
 	    <td>{{ player.get_all_minutes }}</td>
 		<td>{{ player.offense }}</td>
@@ -62,9 +63,31 @@
   </div>
   <div class="tab-pane" id="schedule">
   	{% for game in season_games %}
-  	week {{ forloop.counter }}: <a href="{% url 'team' game.away_team.name|lower %}">{{ game.away_team.name }}</a> @
-	<a href="{% url 'team' game.home_team.name|lower %}">{{ game.home_team.name }}</a><br>
+  	Week {{ forloop.counter }}: {{ game|game_links }}<br>
   	{% endfor %}
+  </div>
+  <div class="tab-pane" id="stats">
+       <table id="player-stats" class="table table-striped table-hover table-condensed player-table">
+           <tr><td>Pos</td><td>Name</td><td>SPG</td><td>RPG</td><td>PPG</td></tr>
+           {% for player in team.starters %}
+           <tr>
+               <td>{{ forloop.counter|position_short }}</td>
+               <td>{{ player|player_link }}</td>
+               <td>{{ player.spg_season }}</td>
+               <td>{{ player.rpg_season }}</td>
+               <td>{{ player.ppg_season }}</td>
+           </tr>
+           {% endfor %}
+           {% for player in team.bench %}
+           <tr>
+               <td>BN</td>
+               <td>{{ player|player_link }}</td>
+               <td>{{ player.spg_season }}</td>
+               <td>{{ player.rpg_season }}</td>
+               <td>{{ player.ppg_season }}</td>
+           </tr>
+           {% endfor %}
+       </table>
   </div>
 </div>
 

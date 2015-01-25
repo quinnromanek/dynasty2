@@ -305,6 +305,12 @@ class PlayerStats(models.Model):
     def points(self):
         return 2 * self.field_goals
 
+    def opponent(self):
+        if self.team.id == self.game.away_team.id:
+            return self.game.home_team
+        else:
+            return self.game.away_team
+
     def __unicode__(self):
         return "{0} %: {1} Stl: {2} Pts: {3}".format(self.player.name, self.fg_pct(), self.steals, self.points())
 

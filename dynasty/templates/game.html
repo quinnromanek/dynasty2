@@ -12,7 +12,7 @@
 
             {% for stat in home_stats %}
             <tr>
-                <td>{{ stat.player.name }}</td>
+                <td>{{ stat.player|player_link }}</td>
                 <td>{{ stat.player.primary_position|position_short }}</td>
                 <td>{{ stat.minutes }}</td>
                 <td>{{ stat.field_goals }}/{{ stat.field_goals_attempted }}</td>
@@ -33,7 +33,11 @@
             {% endfor %}
                 <tr>
                     <td>Total</td>
-                    <td></td><td></td><td></td><td></td><td></td>
+                    <td></td>
+                    <td></td>
+                    <td>{{ home_team_stats.field_goals__sum }}/{{ home_team_stats.field_goals_attempted__sum }}</td>
+                    <td>{{ home_team_stats.steals__sum }}</td>
+                    <td>{{ home_team_stats.rebounds__sum }}</td>
                     <td>{{ game.homeScore }}</td>
                 </tr>
             </tbody>
@@ -51,7 +55,7 @@
             <tbody>
             {% for stat in away_stats %}
             <tr>
-                <td>{{ stat.player.name }}</td>
+                <td>{{ stat.player|player_link }}</td>
                 <td>{{ stat.player.primary_position|position_short }}</td>
                 <td>{{ stat.minutes }}</td>
                 <td>{{ stat.field_goals }}/{{ stat.field_goals_attempted }}</td>
@@ -72,7 +76,11 @@
             {% endfor %}
             <tr>
                 <td>Total</td>
-                <td></td><td></td><td></td><td></td><td></td>
+                <td></td>
+                <td></td>
+                <td>{{ away_team_stats.field_goals__sum }}/{{ away_team_stats.field_goals_attempted__sum }}</td>
+                <td>{{ away_team_stats.steals__sum }}</td>
+                <td>{{ away_team_stats.rebounds__sum }}</td>
                 <td>{{ game.awayScore }}</td>
             </tr>
             </tbody>

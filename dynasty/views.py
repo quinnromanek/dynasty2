@@ -2,9 +2,10 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from dynasty.models import Player, Team, Game, PlayerStats, Season
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.views.generic import TemplateView
 from dynasty.models.game import season_games
+from dynasty.utils import parse_position_string
 from dynasty2.settings import STATIC_URL
 
 
@@ -12,7 +13,7 @@ class DynastyView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(DynastyView, self).get_context_data(**kwargs)
         season = Season.objects.get(name="main")
-        context['ticker_enabled'] = True
+        context['ticker_enabled'] = False
         if season is not None:
             context['season'] = season
             context['static_url'] = STATIC_URL
@@ -99,6 +100,12 @@ class GameView(DynastyView):
     template_name = 'game.html'
 
     def get_context_data(self, **kwargs):
+
+        def get_team_stats(team, game):
+            stats = PlayerStats.objects.filter(Q(game=game) & Q(team=team)).aggregate(
+                Sum('steals'), Sum('rebounds'), Sum('field_goals'), Sum('field_goals_attempted')
+            )
+            return stats
         context = super(GameView, self).get_context_data(**kwargs)
         game_id = context['game_id']
         current_game = get_object_or_404(Game, id=game_id)
@@ -116,6 +123,8 @@ class GameView(DynastyView):
         context['game'] = current_game
         context['home_stats'] = home_stats
         context['away_stats'] = away_stats
+        context['home_team_stats'] = get_team_stats(current_game.home_team, current_game)
+        context['away_team_stats'] = get_team_stats(current_game.away_team, current_game)
         return context
 
 
@@ -126,6 +135,8 @@ class PlayerView(DynastyView):
         context = super(PlayerView, self).get_context_data(**kwargs)
         player_id = context['player_id']
         player = get_object_or_404(Player, id=player_id)
+        last_games = PlayerStats.objects.filter(player=player).order_by("-game__season", "-game__week")[:10]
+        context['last_games'] = last_games
         context['player'] = player
         return context
 
@@ -138,9 +149,16 @@ class PlayersView(DynastyView):
         context = self.get_context_data(**kwargs)
 
         player_list = Player.objects.all().order_by("-offense")
+        position_filter = request.GET.get('position')
+
+        if position_filter is not None and position_filter is not "All":
+            pos = parse_position_string(position_filter)
+            player_list = player_list.filter(Q(primary_position=pos) | Q(secondary_position=pos))
+
         paginator = Paginator(player_list, 25)
 
         page = request.GET.get('page')
+
         if page is None:
             page = 1
         right_button = int(page) < paginator.num_pages

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load dynasty_interface %}
 
 {% block title %}Games - Dynasty{% endblock %}
 
@@ -10,16 +11,7 @@ Week {% for week in weeks %}<a href="#week{{ forloop.counter }}">{{ forloop.coun
 <h3>Week {{ forloop.counter }}</h3>
 
 {% for game in week %}
-{% if not game.is_finished %}
-<a href="{% url 'team' game.away_team.name|lower %}">{{ game.away_team.name }}</a> @
-<a href="{% url 'team' game.home_team.name|lower %}">{{ game.home_team.name }}</a>
-(<a href="{% url 'game' game.id %}">Box Score</a>)<br>
-{% else %}
-<a href="{% url 'team' game.away_team.name|lower %}">{{ game.away_team.name }} {{ game.awayScore }}</a> @
-<a href="{% url 'team' game.home_team.name|lower %}">{{ game.homeScore }} {{ game.home_team.name }}</a>
-
-(<a href="{% url 'game' game.id %}">Box Score</a>)<br>
-{% endif %}
+        {{ game|game_links }}<br>
 {% endfor %}
 {% endfor %}
 {% endblock %}

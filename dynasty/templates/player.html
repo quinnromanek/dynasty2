@@ -1,7 +1,38 @@
 {% extends "base.html" %}
+{% load dynasty_interface %}
 
 {% block title %}{{ player.name }}{% endblock %}
 
         {% block content %}
-        <h1>{{ player.name }} <small>{{ player.team.name }}</small></h1>
+<div class="col-md-6">
+    <h3>#{{ player.number }} {{ player.name }} <small>{{ player|player_positions }}</small></h3>
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <strong>Team:</strong> <a href="{% url 'team' player.team.name|lower %}">{{ player.team.name }}</a><br>
+            <strong>Years:</strong> {{ player.age }}<br>
+            <strong>Attrs:</strong> O|{{ player.offense}} D|{{ player.defense }} A|{{ player.athletics }}<br>
+        </div>
+    </div>
+</div>
+<div class="col-md-6">
+    <h3>Last 10 Games</h3>
+    <div class="panel panel-default">
+        <table class="table table-striped">
+            <tr><td>Season</td><td>Week</td><td>vs</td><td>Min</td><td>Stl</td><td>Reb</td><td>FG M/A</td><td>Pts</td><td></td></tr>
+            {% for stat in last_games %}
+            <tr>
+                <td>{{ stat.game.season }}</td>
+                <td>{{ stat.game.week }}</td>
+                <td>{{ stat.opponent|team_link }}</td>
+                <td>{{ stat.minutes }}</td>
+                <td>{{ stat.steals }}</td>
+                <td>{{ stat.rebounds }}</td>
+                <td>{{ stat.field_goals }}/{{ stat.field_goals_attempted }}</td>
+                <td>{{ stat.points }}</td>
+                <td><a href="{% url 'game' stat.game.id %}">Box</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
         {% endblock %}
