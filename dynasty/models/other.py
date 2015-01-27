@@ -6,6 +6,10 @@ class Season(models.Model):
     week = models.IntegerField(default=0)
     year = models.IntegerField(default=0)
     name = models.CharField(max_length=50)
+    playoff_round = models.IntegerField(default=0)
+    champion = models.CharField(max_length=100, null=True)
+    title = models.CharField(max_length=100, default="Welcome to Dynasty")
+    story = models.TextField(default="Games start now.")
 
     class Meta:
         app_label = "dynasty"

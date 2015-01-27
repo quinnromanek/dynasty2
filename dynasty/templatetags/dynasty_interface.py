@@ -71,6 +71,24 @@ def minute_color(player):
     else:
         return ""
 
+@register.filter
+def counting_number(number):
+    suffix = ""
+    if number % 10 == 1 and number != 11:
+        suffix = "st"
+    elif number % 10 == 2 and number != 12:
+        suffix = "nd"
+    elif number % 10 == 3 and number != 13:
+        suffix = "rd"
+    else:
+        suffix = "th"
+    return str(number) + suffix
+
+@register.filter
+def abs(value):
+    value = int(value)
+    return value if value >= 0 else value * -1
+
 
 
 ###### Quick ways to generate model links ######
@@ -79,9 +97,19 @@ def game_links(game):
     return mark_safe(game_html(game))
 
 @register.filter()
+def game_tr(game):
+    def get_class(a, b):
+        return "game-win" if a>b else ""
+    return mark_safe("<tr><td>{0}</td><td class='{6}'>{1}</td><td>{2}</td><td>vs</td><td class='{7}'>{3}</td><td>{4}</td><td><a href='/games/{5}'>Box</a></td></tr>".format(
+       abs(game.week), game.home_team.name, game.homeScore, game.away_team.name, game.awayScore, game.id, get_class(game.homeScore, game.awayScore),
+       get_class(game.awayScore, game.homeScore)
+    ))
+
+@register.filter()
 def team_link(team):
     return mark_safe("<a href='/teams/{0}'>{1}</a>".format(team.name.lower(), team.name))
 
 @register.filter()
 def player_link(player):
     return mark_safe("<a href='/players/{0}'>{1}</a>".format(player.id, player.name))
+

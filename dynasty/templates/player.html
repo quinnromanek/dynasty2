@@ -4,11 +4,11 @@
 {% block title %}{{ player.name }}{% endblock %}
 
         {% block content %}
-<div class="col-md-6">
+<div class="col-md-4">
     <h3>#{{ player.number }} {{ player.name }} <small>{{ player|player_positions }}</small></h3>
     <div class="panel panel-default">
         <div class="panel-body">
-            <strong>Team:</strong> <a href="{% url 'team' player.team.name|lower %}">{{ player.team.name }}</a><br>
+            <strong>Team:</strong> <a href="{% url 'team' player.team.name|lower %}">{{ player.team.name }}</a> ({{ player.team.wins }}-{{ player.team.losses }})<br>
             <strong>Years:</strong> {{ player.age }}<br>
             <strong>Attrs:</strong> O|{{ player.offense}} D|{{ player.defense }} A|{{ player.athletics }}<br>
             <strong>Tendency: </strong> {{ player.tendency|tendency_description }}<br>
@@ -16,17 +16,18 @@
         </div>
     </div>
 </div>
-<div class="col-md-6">
+<div class="col-md-8">
     <h3>Last 10 Games</h3>
     <div class="panel panel-default">
         <table class="table table-striped">
-            <tr><td>Season</td><td>Week</td><td>vs</td><td>Min</td><td>Stl</td><td>Reb</td><td>FG M/A</td><td>Pts</td><td></td></tr>
+            <tr><td>Season</td><td>Week</td><td>vs</td><td>Min</td><td>Ast</td><td>Stl</td><td>Reb</td><td>FG M/A</td><td>Pts</td><td></td></tr>
             {% for stat in last_games %}
             <tr>
                 <td>{{ stat.game.season }}</td>
                 <td>{{ stat.game.week }}</td>
                 <td>{{ stat.opponent|team_link }}</td>
                 <td>{{ stat.minutes }}</td>
+                <td>{{ stat.assists }}</td>
                 <td>{{ stat.steals }}</td>
                 <td>{{ stat.rebounds }}</td>
                 <td>{{ stat.field_goals }}/{{ stat.field_goals_attempted }}</td>

@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 {% load dynasty_interface %}
 {% block content %}
+{% if game.series != None %}Playoffs round {{ season.playoff_round }}, Game {{ season.week|abs }} (<a href="{% url 'series' game.series.id %}">Series</a>){% endif %}
 <div class="col-md-6">
-    <h3><a href="{% url 'team' game.home_team.name|lower %}">{{ game.home_team.name }}</a></h3>
+    <h3><a href="{% url 'team' game.home_team.name|lower %}">{{ game.home_team.name }}</a> <small>{% if game.series == None %}({{ game.home_team.wins }}-{{ game.home_team.losses }}){% else %}({{ game.series.home_team_wins }}){% endif %}</small></h3>
     <div class="panel panel-default">
         <table class="table table-striped">
             <thead>
-            <tr><td>Player</td><td>Position</td><td>Min</td><td>FG M/A</td><td>Steals</td><td>Rebounds</td><td>Points</td></tr>
+            <tr><td>Player</td><td>Pos</td><td>Min</td><td>Ast</td><td>FG M/A</td><td>Stl</td><td>Reb</td><td>Pts</td></tr>
             </thead>
             <tbody>
 
@@ -15,6 +16,7 @@
                 <td>{{ stat.player|player_link }}</td>
                 <td>{{ stat.player.primary_position|position_short }}</td>
                 <td>{{ stat.minutes }}</td>
+                <td>{{ stat.assists }}</td>
                 <td>{{ stat.field_goals }}/{{ stat.field_goals_attempted }}</td>
                 <td>{{ stat.steals }}</td>
                 <td>{{ stat.rebounds }}</td>
@@ -35,6 +37,7 @@
                     <td>Total</td>
                     <td></td>
                     <td></td>
+                    <td>{{ home_team_stats.assists__sum }}</td>
                     <td>{{ home_team_stats.field_goals__sum }}/{{ home_team_stats.field_goals_attempted__sum }}</td>
                     <td>{{ home_team_stats.steals__sum }}</td>
                     <td>{{ home_team_stats.rebounds__sum }}</td>
@@ -46,11 +49,11 @@
 </div>
 <div class="col-md-6">
 
-    <h3><a href="{% url 'team' game.away_team.name|lower %}">{{ game.away_team.name }}</a></h3>
+    <h3><a href="{% url 'team' game.away_team.name|lower %}">{{ game.away_team.name }}</a> <small>{% if game.series == None %}({{ game.away_team.wins }}-{{ game.away_team.losses }}){% else %}({{ game.series.away_team_wins }}){% endif %}</small></h3>
     <div class="panel panel-default">
         <table class="table table-striped">
             <thead>
-            <tr><td>Player</td><td>Position</td><td>Min</td><td>FG M/A</td><td>Steals</td><td>Rebounds</td><td>Points</td></tr>
+            <tr><td>Player</td><td>Pos</td><td>Min</td><td>Ast</td><td>FG M/A</td><td>Stl</td><td>Reb</td><td>Pts</td></tr>
             </thead>
             <tbody>
             {% for stat in away_stats %}
@@ -58,6 +61,7 @@
                 <td>{{ stat.player|player_link }}</td>
                 <td>{{ stat.player.primary_position|position_short }}</td>
                 <td>{{ stat.minutes }}</td>
+                <td>{{ stat.assists }}</td>
                 <td>{{ stat.field_goals }}/{{ stat.field_goals_attempted }}</td>
                 <td>{{ stat.steals }}</td>
                 <td>{{ stat.rebounds }}</td>
@@ -78,6 +82,7 @@
                 <td>Total</td>
                 <td></td>
                 <td></td>
+                <td>{{ away_team_stats.assists__sum }}</td>
                 <td>{{ away_team_stats.field_goals__sum }}/{{ away_team_stats.field_goals_attempted__sum }}</td>
                 <td>{{ away_team_stats.steals__sum }}</td>
                 <td>{{ away_team_stats.rebounds__sum }}</td>

@@ -17,6 +17,8 @@ urlpatterns = patterns('',
                        url(r'^players/', views.PlayersView.as_view(), name='players'),
                        url(r'^games/(?P<game_id>\d+)', views.GameView.as_view(), name="game"),
                        url(r'^games/', views.GamesView.as_view(), name="games"),
+                       url(r'^series/(?P<series_id>\d+)', views.SeriesView.as_view(), name="series"),
                        url(r'^service/', include(beta_api.urls))
+
 
 )

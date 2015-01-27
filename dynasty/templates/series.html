@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load dynasty_interface %}
+{% block title %}
+        {{ series.home_team.name }} vs {{ series.away_team.name }}
+{% endblock %}
+
+{% block content %}
+<h3>#{{ series.home_team_seed }} {{ series.home_team.name }} ({{ series.home_team_wins }}) vs #{{ series.away_team_seed }}
+{{ series.away_team.name }} ({{ series.away_team_wins }})</h3>
+<div class="panel panel-default">
+    <table class="table table-striped">
+        <tr><td>Game</td><td>Home</td><td></td><td></td><td>Away</td><td></td><td></td><td></td></tr>
+        {% for game in games %}
+        {{ game|game_tr }}
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

@@ -1,4 +1,4 @@
-from dynasty.models import Team, Player, Game, Season, PlayerStats
+from dynasty.models import Team, Player, Game, Season, PlayerStats, Series
 from django.core.management.base import BaseCommand, CommandError
 from random import randrange, shuffle, gauss
 from itertools import combinations
@@ -18,16 +18,16 @@ fnames = ["George", "James", "Clint", "Alex", "Alexander",
           "Andre", "Frank", "Asher", "LaRon", "Chris", "Nick", "Patrick", "Pat", "Jon",
           "Max", "Xavier", "Dan", "Sean", "Shawn", "Mark", "Giuseppe", "Joe",
           "Stephen", "Sam", "Samuel", "Sammy", "Mike", "Sebastian", "Lee", "Ming", "Tao", "Jose",
-          "Eduardo", "Jim", "Jimmy", "D.J", "Allen", "Ray", "Griffin", "Quinn", "Louis", "Lou", "Will",
-          "William", "Willie", "Raymond", "Connor", "C.J", "Ethan", "Carter", "John", "Johnny", "Mitchell",
+          "Eduardo", "Jim", "Jimmy", "DJ", "Allen", "Ray", "Griffin", "Quinn", "Louis", "Lou", "Will",
+          "William", "Willie", "Raymond", "Connor", "CJ", "Ethan", "Carter", "John", "Johnny", "Mitchell",
           "Francisco", "Jamie", "Victor", "Paul", "Harry", "Harrison", "Noah", "Desmond", "Ryan", "Weston"  # 74
 ]
 lnames = [
-    "Bradley", "Marshall", "Gordon",
-    "Jordan", "Romanek", "Owen", "Goldstein", "Robinson", "Louis",
-    "Thomas", "Conrad", "Waterson", "Jacques", "Smithson", "Binks",
+    "Bradley", "Marshall", "Gordon", "Beckham", "O'Reilly", "Berry",
+    "Jordan", "Ryan", "Owen", "Goldstein", "Robinson", "Louis",
+    "Thomas", "Conrad", "Waterson", "Jacques", "Smithson", "Bingham",
     "Anderson", "Moran", "Jones", "Roberts", "Richardson", "Hanson",
-    "Bransen", "Enroth", "Butler", "Tyler", "Wallace", "Franklin",
+    "Bransen", "Emory", "Butler", "Tyler", "Wallace", "Franklin",
     "Washington", "Madison", "Mason", "Johnson", "Miller", "Allen", "Green", "Li",
     "Lincoln", "Bird", "Monroe", "Jefferson", "Richards", "Smith", "Williams", "Lopez",
     "Brown", "Davis", "Wilson", "Moore", "Taylor", "Thomas", "Jackson", "White", "Harris",
@@ -144,8 +144,11 @@ def get_secondary_position(primary_position):
 def create_random_player(team, age=1, position=0, roster=0):
     if position == 0:
         position = randrange(5) + 1
+        s_position = get_secondary_position(position)
+    else:
+        s_position = 0
+
     name = fnames[randrange(len(fnames))] + " " + lnames[randrange(len(lnames))]
-    s_position = get_secondary_position(position)
     skill =  get_binomial_result(1, 10, 0.35)
     shooting = get_binomial_result(1, 10, 0.35)
     athletics = get_binomial_result(1, 10, 0.35)
@@ -158,8 +161,6 @@ def create_random_player(team, age=1, position=0, roster=0):
         amplitudes.append(get_binomial_result(0, 10 - attrs[i], 0.4))
         peak = attrs[i] + amplitudes[-1]
         amplitudes.append(get_binomial_result(0, peak-1, 0.4))
-
-
 
     player = Player.objects.create(name=name, primary_position=position, secondary_position=s_position, defense=shooting,
                           offense=skill, prime_year=randrange(6, 11),
@@ -196,6 +197,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         Season.objects.all().delete()
         PlayerStats.objects.all().delete()
+        Series.objects.all().delete()
         make_teams()
         create_schedule()
         generate_players_for_teams()

@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, Sum, F
 from dynasty.templatetags.dynasty_interface import position_short
 
 __author__ = 'flex109'
@@ -28,7 +28,8 @@ def set_best_rotation(team):
         for player in players:
             if player.has_position(position) and player.rating() > best[1] and player.roster == 0:
                 best = (player, player.rating())
-
+        if best[0] is None:
+            print("Fuck this")
         best[0].roster = position
         starters[position - 1] = best[0]
         best[0].set_min_at_pos(position, best[0].max_minutes())
@@ -139,7 +140,38 @@ def find_rotation(team):
 
 
 
+def tiebreak(*teams):
+    def head_to_head(team, opp):
+        wins = team.home_game.filter(Q(away_team=opp) & Q(homeScore__gt=F("awayScore"))).count()
+        wins += team.away_game.filter(Q(home_team=opp) & Q(awayScore__gt=F("homeScore"))).count()
+        return wins
 
+    if len(teams) == 2:
+        avb = head_to_head(teams[0], teams[1])
+        bva = head_to_head(teams[1], teams[0])
+        if avb > bva:
+            return teams[:]
+        elif bva > avb:
+            return teams[::-1]
+
+    return sorted(teams, key=Team.point_diff, reverse=True)
+
+
+def seed(teams):
+    ties = []
+    for i in range(len(teams)):
+        team = teams[i]
+        if len(ties) == 0 or ties[-1].wins == team.wins:
+            ties.append(team)
+        else:
+            if len(ties) > 1:
+                ties_broken = tiebreak(*ties)
+                for j in range(len(ties_broken)):
+                    teams[i-len(ties)+j] = ties_broken[j]
+
+            ties = [teams[i]]
+
+    return teams
 
 
 
@@ -149,6 +181,10 @@ class Team(models.Model):
     wins = models.IntegerField(default=0)
     losses = models.IntegerField(default=0)
     division = models.IntegerField(default=0)
+
+    class Meta:
+        app_label = "dynasty"
+        db_table = "dynasty_team"
 
     def __unicode__(self):
         return "{0} ({1}-{2})".format(self.name, self.wins, self.losses)
@@ -170,8 +206,20 @@ class Team(models.Model):
         b = list(self.player_set.filter(roster=0))
         return b
 
+    def div_rank(self):
+        agg = seed(list(Team.objects.filter(division=self.division).order_by("-wins")))
+        for i in range(len(agg)):
+            if agg[i].id == self.id:
+                return i + 1
+
+    def point_diff(self):
+        try:
+            home_scores = self.home_game.aggregate(team_score=Sum('homeScore'), opp_score=Sum('awayScore'))
+            away_scores = self.away_game.aggregate(team_score=Sum('awayScore'), opp_score=Sum('homeScore'))
+            return (home_scores['team_score'] + away_scores['team_score'] -home_scores['opp_score'] - away_scores['opp_score'])/float(self.wins+self.losses)
+        except ZeroDivisionError:
+            return 0.0
 
 
-    class Meta:
-        app_label = "dynasty"
-        db_table = "dynasty_team"
+
+

@@ -17,7 +17,7 @@ class GameTeam:
         self.game = game
         self.on_court = range(5)
         self.full_team = self.team.starters() + self.team.bench()
-        self.stats = [[0, 0, 0, 0] for i in xrange(len(self.full_team))]
+        self.stats = [[0, 0, 0, 0, 0] for i in xrange(len(self.full_team))]
         self.rotation = self.find_rotation()
 
     def __repr__(self):
@@ -42,6 +42,8 @@ class GameTeam:
             self.stats[player][2] += 1
         elif type == "steal":
             self.stats[player][3] += 1
+        elif type == "assist":
+            self.stats[player][4] += 1
 
     def check_subs(self):
         minutes = self.game.minutes()
@@ -74,6 +76,7 @@ class Game(models.Model):
     awayScore = models.IntegerField(default=0)
     week = models.IntegerField(default=0)
     season = models.IntegerField(default=0)
+    series = models.ForeignKey('dynasty.series', default=None, null=True)
 
     class Meta:
         app_label = "dynasty"
@@ -87,6 +90,14 @@ class Game(models.Model):
 
     def is_finished(self):
         return self.homeScore > 0 and self.awayScore > 0
+
+    def winner(self):
+        if self.homeScore > self.awayScore:
+            return self.home_team
+        elif self.awayScore > self.homeScore:
+            return self.away_team
+        else:
+            return None
 
     def play(self):
         # For game positions are zero-indexed
@@ -141,14 +152,14 @@ class Game(models.Model):
             else:
                 return home_team
 
-        def do_roll():
+        def do_roll(sub=False):
             end = False
             if self.clock - roll < 0.0:
                 self.clock = quarter_length
                 self.quarter += 1
             if self.quarter > 4 and self.homeScore != self.awayScore:
                 end = True
-            if self.minutes() > self.minute and not end:
+            if self.minutes() > self.minute and not end and sub:
                 self.minute = self.minutes()
                 home_team.check_subs()
                 away_team.check_subs()
@@ -156,6 +167,8 @@ class Game(models.Model):
             return end
 
         player_poss = 0
+        assist_boost = 0.0
+        assist_player = -1
         team_poss = get_tipoff()
         self.clock -= roll
         while True:
@@ -173,6 +186,7 @@ class Game(models.Model):
             if main_roll > p_shot + p_pass:
                 # Steal
                 team_poss = switch_team(team_poss)
+                assist_boost = 0.0
                 log_stat("steal", team_poss, player_poss)
             elif main_roll > p_shot:
                 # Pass
@@ -182,8 +196,14 @@ class Game(models.Model):
                         steal(avg(team_poss[player_poss].offense, team_poss[target].offense),
                               avg(switch_team(team_poss)[player_poss].defense,
                                   switch_team(team_poss)[target].defense))):
+                    # Steal on pass
                     team_poss = switch_team(team_poss)
+                    assist_boost = 0.0
                     log_stat("steal", team_poss, player_poss)
+                elif random() <= team_poss[player_poss].offense/10.0:
+                    # Assist active
+                    assist_boost = team_poss[player_poss].offense/100.0
+                    assist_player = player_poss
 
                 end = do_roll()
                 if end:
@@ -194,8 +214,8 @@ class Game(models.Model):
             else:
                 # Shot
                 fatigue_factor = (max(0.0, float(team_poss[player_poss].fatigue)) - max(0.0, float(switch_team(team_poss)[player_poss].fatigue)))/500.0
-                if random() > 0.4 - fatigue_factor \
-                                + 0.4 * shot(team_poss[player_poss].offense,
+                if random() > 0.2 - fatigue_factor + assist_boost \
+                                + 0.6 * shot(team_poss[player_poss].offense,
                                                  switch_team(team_poss)[player_poss].defense):
                     # Rebound
                     # Placeholder for rebounding logic
@@ -221,26 +241,29 @@ class Game(models.Model):
                     player_poss = winner
                     log_stat("rebound", team_poss, player_poss)
 
-                    end = do_roll()
+                    end = do_roll(sub=True)
                     if end:
                         break
                 else:
                     score(team_poss)
+                    if assist_boost > 0.0:
+                        log_stat("assist", team_poss, assist_player)
                     log_stat("score", team_poss, player_poss)
                     team_poss = switch_team(team_poss)
                     player_poss = 0
 
-                end = do_roll()
+                # Either way, no more assists.
+                assist_boost = 0.0
+                end = do_roll(sub=True)
                 if end:
                     break
 
         home_team.save_stats()
         away_team.save_stats()
+        if self.series is not None:
+            self.series.game_finished(self)
 
-        if self.homeScore > self.awayScore:
-            self.home_team.wins += 1
-        else:
-            self.away_team.wins += 1
+
         self.save()
 
 
@@ -254,6 +277,7 @@ class PlayerStats(models.Model):
     field_goals_attempted = models.IntegerField(default=0)
     rebounds = models.IntegerField(default=0)
     steals = models.IntegerField(default=0)
+    assists = models.IntegerField(default=0)
 
     def fg_pct(self):
         if self.field_goals_attempted > 0:
@@ -287,7 +311,7 @@ def log_game(player, game, team, data):
     player.save()
     obj = PlayerStats.objects.create(player=player, game=game, roster=player.roster, team=team,
                                      field_goals=data[0], field_goals_attempted=data[1], rebounds=data[2],
-                                     steals=data[3], minutes=player.get_all_minutes())
+                                     steals=data[3], minutes=player.get_all_minutes(), assists=data[4])
 
-def season_games(team):
-    return Game.objects.filter(Q(away_team__id=team.id) | Q(home_team__id=team.id)).order_by('week')
+def regular_season_games(team):
+    return Game.objects.filter(Q(away_team__id=team.id) | Q(home_team__id=team.id), week__gte=0).order_by('week')

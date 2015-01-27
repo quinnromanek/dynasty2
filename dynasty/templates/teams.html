@@ -1,18 +1,31 @@
 {% extends "base.html" %}
+{% load dynasty_interface %}
 
 {% block title %}Standings - Dynasty{% endblock %}
 
 {% block content %}
 <!-- eastern conference -->
 
+<ul class="nav nav-tabs">
+    <li><a href="#division" data-toggle="tab">Division</a> </li>
+    <li class="active"><a href="#conference" data-toggle="tab">Conference</a></li>
+</ul>
+<div class="tab-content">
+    <div class="tab-pane" id="division">
+{% for div in divs %}
+{% if forloop.counter0 == 0 %}
 <div class="col-md-6">
 	<h3>Eastern Conference</h3>
+{% elif forloop.counter0 == 2 %}
+    <div class="col-md-6">
+    <h3>Western Conference</h3>
+{% endif %}
 	<div class="panel panel-default">
-		<div class="panel-heading">Northeast Division</div>
+		<div class="panel-heading">{{ forloop.counter0|division_name }}</div>
 		<table class="table table-striped"><thead>
 			<tr><td>Team</td><td>%</td><td>W</td><td>L</td></tr></thead>
 			<tbody>
-				{% for team in divs.0 %}
+				{% for team in div %}
 				<tr>
 					<td><a href="{% url 'team' team.name|lower %}">{{ team.name }}</a></td>
 					<td>{{ team.win_pct|floatformat:3 }}</td>
@@ -23,58 +36,39 @@
 			</tbody>
 		</table>
 	</div>
-	<div class="panel panel-default">
-		<div class="panel-heading">Southeast Division</div>
-		<table class="table table-striped"><thead>
-			<tr><td>Team</td><td>%</td><td>W</td><td>L</td></tr></thead>
-			<tbody>
-				{% for team in divs.1 %}
-				<tr>
-					<td><a href="{% url 'team' team.name|lower %}">{{ team.name }}</a></td>
-					<td>{{ team.win_pct|floatformat:3 }}</td>
-					<td>{{ team.wins }}</td>
-					<td>{{ team.losses }}</td>
-				</tr>
-				{% endfor %}
-			</tbody>
-		</table>
-	</div>
+{% if forloop.counter0 == 1 %}
 </div>
+{% elif forloop.counter0 == 3 %}
+</div>
+{% endif %}
 <!-- western conference -->
 
-<div class="col-md-6">
-	<h3>Western Conference</h3>
-	<div class="panel panel-default">
-		<div class="panel-heading">Northwest Division</div>
-		<table class="table table-striped"><thead>
-			<tr><td>Team</td><td>%</td><td>W</td><td>L</td></tr></thead>
-			<tbody>
-				{% for team in divs.2 %}
-				<tr>
-					<td><a href="{% url 'team' team.name|lower %}">{{ team.name }}</a></td>
-					<td>{{ team.win_pct|floatformat:3 }}</td>
-					<td>{{ team.wins }}</td>
-					<td>{{ team.losses }}</td>
-				</tr>
-				{% endfor %}
-			</tbody>
-		</table>
-	</div>
-	<div class="panel panel-default">
-		<div class="panel-heading">Southwest Division</div>
-		<table class="table table-striped"><thead>
-			<tr><td>Team</td><td>%</td><td>W</td><td>L</td></tr></thead>
-			<tbody>
-				{% for team in divs.3 %}
-				<tr>
-					<td><a href="{% url 'team' team.name|lower %}">{{ team.name }}</a></td>
-					<td>{{ team.win_pct|floatformat:3 }}</td>
-					<td>{{ team.wins }}</td>
-					<td>{{ team.losses }}</td>
-				</tr>
-				{% endfor %}
-			</tbody>
-		</table>
-	</div>
+{% endfor %}
+    </div>
+    <div class="tab-pane active" id="conference">
+        {% for conf in confs %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                {% if forloop.counter == 1 %}Eastern{% else %}Western{% endif %} Conference
+            </div>
+            <table class="table table-striped">
+                <thead><tr><td>Rank</td><td>Team</td><td>PD</td><td>%</td><td>W</td><td>L</td></tr></thead>
+                <tbody>
+                {% for team in conf %}
+                <tr class="{% if team.div_rank == 1 %}success{% elif team.id in wildcards %}warning{% endif %}">
+                    <td>{{ forloop.counter }}</td>
+                    <td><a href="{% url 'team' team.name|lower %}">{{ team.name }}</a></td>
+                    <td>{{ team.point_diff|floatformat }}</td>
+                    <td>{{ team.win_pct|floatformat:3 }}</td>
+                    <td>{{ team.wins }}</td>
+                    <td>{{ team.losses }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endfor %}
+    </div>
+
 </div>
 {% endblock %}

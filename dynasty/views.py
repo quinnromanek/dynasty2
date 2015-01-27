@@ -2,11 +2,14 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from dynasty.models import Player, Team, Game, PlayerStats, Season
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, Avg
 from django.views.generic import TemplateView
-from dynasty.models.game import season_games
+from dynasty.models.game import regular_season_games
+from dynasty.models.playoffs import Series
+from dynasty.models.team import seed
 from dynasty.utils import parse_position_string
 from dynasty2.settings import STATIC_URL
+from dynasty import constants
 
 
 class DynastyView(TemplateView):
@@ -35,7 +38,7 @@ class TeamView(DynastyView):
     def get_context_data(self, **kwargs):
         context = super(TeamView, self).get_context_data(**kwargs)
         context['team'] = get_object_or_404(Team, name=context['team_name'].capitalize())
-        context['season_games'] = season_games(context['team'])
+        context['season_games'] = regular_season_games(context['team'])
         return context
 
 
@@ -56,7 +59,26 @@ class TeamsView(DynastyView):
 
         divs = []
         for i in range(4):
-            divs.append(Team.objects.filter(division=i).order_by("-wins"))
+            divs.append(seed(list(Team.objects.filter(division=i).order_by("-wins"))))
+
+        all_teams = Team.objects.all().order_by("-wins")
+        wildcards = []
+        for team in seed(list(all_teams)):
+            if len(wildcards) == 2:
+                break
+
+            if team.div_rank() != 1:
+                wildcards.append(team)
+
+        wildcards = [w.id for w in wildcards]
+        context['wildcards'] = wildcards
+
+
+        confs = []
+        confs.append(seed(list(Team.objects.filter(Q(division=0) | Q(division=1)).order_by("-wins"))))
+        confs.append(seed(list(Team.objects.filter(Q(division=2) | Q(division=3)).order_by("-wins"))))
+
+        context['confs'] = confs
         context['divs'] = divs
         return context
 
@@ -67,7 +89,7 @@ def players(request):
 
 def games(request):
     weeks = []
-    for week_num in range(11):
+    for week_num in range(constants.SEASON_LENGTH):
         weeks.append(Game.objects.filter(week=week_num))
 
     return render(request, 'games.html', {'weeks': weeks})
@@ -79,7 +101,7 @@ class GamesView(DynastyView):
     def get_context_data(self, **kwargs):
         context = super(GamesView, self).get_context_data(**kwargs)
         weeks = []
-        for week_num in range(11):
+        for week_num in range(constants.SEASON_LENGTH):
             weeks.append(Game.objects.filter(week=week_num))
         context['weeks'] = weeks
         return context
@@ -103,7 +125,7 @@ class GameView(DynastyView):
 
         def get_team_stats(team, game):
             stats = PlayerStats.objects.filter(Q(game=game) & Q(team=team)).aggregate(
-                Sum('steals'), Sum('rebounds'), Sum('field_goals'), Sum('field_goals_attempted')
+                Sum('steals'), Sum('rebounds'), Sum('field_goals'), Sum('field_goals_attempted'), Sum('assists')
             )
             return stats
         context = super(GameView, self).get_context_data(**kwargs)
@@ -148,10 +170,30 @@ class PlayersView(DynastyView):
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
 
-        player_list = Player.objects.all().order_by("-offense")
+        player_list = Player.objects.all().order_by("name")
         position_filter = request.GET.get('position')
+        valid_orders = ['name', 'team', 'offense', 'defense', 'athletics', 'stamina', 'spg', 'apg', 'rpg', 'ppg']
+        order = request.GET.get('order_by')
+        context['order'] = ""
+        if order is not None and order in valid_orders:
+            context['order'] = order
+            if order.endswith("pg"):
+                stat = ""
+                if order == "spg":
+                    stat="steals"
+                elif order == "apg":
+                    stat = "assists"
+                elif order == "rpg":
+                    stat = "rebounds"
+                else:
+                    stat = "field_goals"
+                player_list = player_list.annotate(stat_average=Avg("playerstats__" + stat)).order_by("-stat_average")
+            else:
+                player_list = player_list.order_by("-" + order)
 
-        if position_filter is not None and position_filter is not "All":
+        context['pos'] = ""
+        if position_filter is not None and position_filter in ["PG", "SG", "SF", "PF", "C"]:
+            context['pos'] = position_filter
             pos = parse_position_string(position_filter)
             player_list = player_list.filter(Q(primary_position=pos) | Q(secondary_position=pos))
 
@@ -180,6 +222,20 @@ class PlayersView(DynastyView):
         context['num_pages'] = paginator.num_pages
 
         return self.render_to_response(context)
+
+
+class SeriesView(DynastyView):
+    template_name = "series.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(SeriesView, self).get_context_data(**kwargs)
+        series_id = context['series_id']
+        series = get_object_or_404(Series, id=series_id)
+
+        context['series'] = series
+        context['games'] = series.game_set.order_by("-week")
+
+        return context
 
 
 

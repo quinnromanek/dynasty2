@@ -27,7 +27,11 @@ tbody td {
 	font-style: bold;
 }
 .player-table {
-	table-layout: fixed;
+}
+
+td.game-win {
+    font-weight: bold;
+    color: darkgreen;
 }
 
 span.fatigue {

@@ -69,7 +69,7 @@ class Player(models.Model):
     # In-game information
     primary_position = models.IntegerField(default=0)
     secondary_position = models.IntegerField(default=0)
-    team = models.ForeignKey('dynasty.team')
+    team = models.ForeignKey('dynasty.team', null=True)
     roster = models.IntegerField('starting position or bench', default=0)
     minutes = models.IntegerField(default=0)
     number = models.IntegerField(default=0)
@@ -161,6 +161,12 @@ class Player(models.Model):
 
     def spg_season(self):
         spg = self.playerstats_set.all().aggregate(Avg('steals'))['steals__avg']
+        if spg is None:
+            return 0.0
+        return spg
+
+    def apg_season(self):
+        spg = self.playerstats_set.all().aggregate(Avg('assists'))['assists__avg']
         if spg is None:
             return 0.0
         return spg

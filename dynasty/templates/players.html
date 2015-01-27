@@ -7,15 +7,16 @@
                 <form method="get"><select name="team">
                     <option>All</option>
                 </select>
-                <select name="position">
+                <select name="position" >
                     <option>All</option>
-                    <option>PG</option>
-                    <option>SG</option>
-                    <option>SF</option>
-                    <option>PF</option>
-                    <option>C</option>
+                    <option {% ifequal pos "PG" %}selected="selected"{% endifequal %}>PG</option>
+                    <option {% ifequal pos "SG" %}selected="selected"{% endifequal %}>SG</option>
+                    <option {% ifequal pos "SF" %}selected="selected"{% endifequal %}>SF</option>
+                    <option {% ifequal pos "PF" %}selected="selected"{% endifequal %}>PF</option>
+                    <option {% ifequal pos "C" %}selected="selected"{% endifequal %}>C</option>
                 </select>
                     <input type="submit" value="Show" />
+                    <input type="hidden" name="order_by" value="{{ order }}"/>
                 </form>
             </div>
         </div>
@@ -30,9 +31,10 @@
                     <td>Ath</td>
                     <td>Sta</td>
                     <td>Age</td>
-                    <td>Steals</td>
-                    <td>Reb</td>
-                    <td>PPG</td>
+                    <td><a href="?order_by=apg&position={{ pos }}">Assists {% ifequal order "apg" %}<span class="caret"></span>{% endifequal %}</a></td>
+                    <td><a href="?order_by=spg&position={{ pos }}">Steals {% ifequal order "spg" %}<span class="caret"></span>{% endifequal %}</a></td>
+                    <td><a href="?order_by=rpg&position={{ pos }}">Rebounds {% ifequal order "rpg" %}<span class="caret"></span>{% endifequal %}</a></td>
+                    <td><a href="?order_by=ppg&position={{ pos }}">Points {% ifequal order "ppg" %}<span class="caret"></span>{% endifequal %}</a></td>
                 </tr>
             </thead>
             <tbody>
@@ -46,18 +48,19 @@
                     <td>{{ player.athletics }}</td>
                     <td>{{ player.stamina }}</td>
                     <td>{{ player.age }}</td>
-                    <td>{{ player.spg_season }}</td>
-                    <td>{{ player.rpg_season }}</td>
-                    <td>{{ player.ppg_season }}</td>
+                    <td>{{ player.apg_season|floatformat }}</td>
+                    <td>{{ player.spg_season|floatformat }}</td>
+                    <td>{{ player.rpg_season|floatformat }}</td>
+                    <td>{{ player.ppg_season|floatformat }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
         <ul class="pagination">
-            <li class="{% if page <= 1 %}disabled{% endif %}"><a  href="?page={{ page|add:'-1' }}">&laquo;</a></li>
+            <li class="{% if page <= 1 %}disabled{% endif %}"><a  href="?page={{ page|add:'-1' }}&order_by={{ order }}&position={{ pos }}">&laquo;</a></li>
             {% for page_num in page_range %}
-            <li class="{% if page == page_num %}active{% endif %}"><a href="?page={{ page_num }}">{{ page_num }}</a></li>
+            <li class="{% if page == page_num %}active{% endif %}"><a href="?page={{ page_num }}&order_by={{ order }}&position={{ pos }}">{{ page_num }}</a></li>
             {% endfor %}
-            <li class="{% if page >= num_pages %}disabled{% endif %}"><a  href="?page={{ page|add:'1' }}">&raquo;</a></li>
+            <li class="{% if page >= num_pages %}disabled{% endif %}"><a  href="?page={{ page|add:'1' }}&order_by={{ order }}&position={{ pos }}">&raquo;</a></li>
         </ul>
         {% endblock %}
