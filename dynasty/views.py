@@ -10,6 +10,7 @@ from dynasty.models.team import seed
 from dynasty.utils import parse_position_string
 from dynasty2.settings import STATIC_URL
 from dynasty import constants
+from itertools import chain
 
 
 class DynastyView(TemplateView):
@@ -38,7 +39,9 @@ class TeamView(DynastyView):
     def get_context_data(self, **kwargs):
         context = super(TeamView, self).get_context_data(**kwargs)
         context['team'] = get_object_or_404(Team, name=context['team_name'].capitalize())
-        context['season_games'] = regular_season_games(context['team'])
+        team = context['team']
+        playoff_games = Game.objects.filter(Q(away_team=team) | Q(home_team=team), week__lt=0).order_by("series__round", "-week")
+        context['season_games'] = chain(regular_season_games(context['team']), playoff_games)
         return context
 
 
@@ -104,6 +107,11 @@ class GamesView(DynastyView):
         for week_num in range(constants.SEASON_LENGTH):
             weeks.append(Game.objects.filter(week=week_num))
         context['weeks'] = weeks
+        if context['season'].in_playoffs():
+            context['rd1'] = Series.objects.filter(season=context['season'], round=1).order_by("-home_team_seed")
+            context['rd2'] = Series.objects.filter(season=context['season'], round=2).order_by("home_team_seed")
+            context['championship'] = Series.objects.get(season=context['season'], round=3)
+
         return context
 
 
@@ -157,8 +165,11 @@ class PlayerView(DynastyView):
         context = super(PlayerView, self).get_context_data(**kwargs)
         player_id = context['player_id']
         player = get_object_or_404(Player, id=player_id)
-        last_games = PlayerStats.objects.filter(player=player).order_by("-game__season", "-game__week")[:10]
-        context['last_games'] = last_games
+
+        playoff_games = PlayerStats.objects.filter(player=player, game__week__lt=0).order_by("-game__series__round", "game__week")
+        last_games = PlayerStats.objects.filter(player=player, game__week__gte=0).order_by("-game__season", "-game__week")[:(10-playoff_games.count())]
+
+        context['last_games'] = chain(playoff_games, last_games)
         context['player'] = player
         return context
 

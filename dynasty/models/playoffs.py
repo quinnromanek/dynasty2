@@ -43,20 +43,21 @@ class Series(models.Model):
             self.home_team_wins += 1
         elif game.winner().id == self.away_team.id:
             self.away_team_wins += 1
+        self.save()
 
-        if self.is_over():
-            seed = 0
+        if self.is_over() and self.advance is not None:
+            seed = 7
             if self.winner().id == self.home_team.id:
                 seed = self.home_team_seed
             elif self.winner().id == self.away_team.id:
                 seed = self.away_team_seed
 
-            if self.advance.home_team == None:
+            if self.advance.home_team is None:
                 self.advance.home_team = self.winner()
-                self.advance.home_seed = seed
+                self.advance.home_team_seed = seed
             else:
                 self.advance.away_team = self.winner()
-                self.advance.away_seed = seed
+                self.advance.away_team_seed = seed
             self.advance.save()
 
         else:

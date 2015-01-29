@@ -5,6 +5,7 @@ from itertools import combinations
 from dynasty.models.player import pack_values
 from dynasty.models.team import set_best_rotation
 from dynasty.utils import get_binomial_result
+from dynasty.constants import  *
 
 teams = [
     ["Rush", "Muscle", "Gryphons", "Knights"],
@@ -58,7 +59,7 @@ def get_div_games(division):
     return weeks
 
 
-def create_schedule(div_games=2, conf_games=1, int_games=1):
+def create_schedule(div_games=DIVISION_GAMES, conf_games=CONFERENCE_GAMES, int_games=1):
     def team_id(team_name):
         return Team.objects.get(name=team_name)
 

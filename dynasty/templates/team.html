@@ -65,9 +65,14 @@
 	</table>
   </div>
   <div class="tab-pane" id="schedule">
-  	{% for game in season_games %}
-  	Week {{ forloop.counter }}: {{ game|game_links }}<br>
-  	{% endfor %}
+      <div class="panel panel-default">
+          <table class="table table-striped">
+              <tr><td>Week</td><td>Home</td><td></td><td></td><td>Away</td><td></td><td></td><td></td></tr>
+              {% for game in season_games %}
+              {{ game|game_tr }}
+              {% endfor %}
+          </table>
+      </div>
   </div>
   <div class="tab-pane" id="stats">
        <table id="player-stats" class="table table-striped table-hover table-condensed player-table">

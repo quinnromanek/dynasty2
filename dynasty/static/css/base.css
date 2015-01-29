@@ -31,7 +31,7 @@ tbody td {
 
 td.game-win {
     font-weight: bold;
-    color: darkgreen;
+    color: green;
 }
 
 span.fatigue {
@@ -41,6 +41,23 @@ span.fatigue {
 span.rest {
     font-weight: bold;
     color: green
+}
+
+.node circle {
+  cursor: pointer;
+  fill: #fff;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+.node text {
+  font: 20px sans-serif;
+}
+
+path.link {
+  fill: none;
+  stroke: #ccc;
+  stroke-width: 1.5px;
 }
 
 /* THIS SHIT */

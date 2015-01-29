@@ -171,6 +171,11 @@ def seed(teams):
 
             ties = [teams[i]]
 
+    if len(ties) > 1:
+        ties_broken = tiebreak(*ties)
+        for j in range(len(ties_broken)):
+            teams[len(teams)-len(ties)+j] = ties_broken[j]
+
     return teams
 
 
@@ -214,8 +219,12 @@ class Team(models.Model):
 
     def point_diff(self):
         try:
-            home_scores = self.home_game.aggregate(team_score=Sum('homeScore'), opp_score=Sum('awayScore'))
-            away_scores = self.away_game.aggregate(team_score=Sum('awayScore'), opp_score=Sum('homeScore'))
+            home_scores = self.home_game.filter(week__gte=0).aggregate(team_score=Sum('homeScore'), opp_score=Sum('awayScore'))
+            away_scores = self.away_game.filter(week__gte=0).aggregate(team_score=Sum('awayScore'), opp_score=Sum('homeScore'))
+            if home_scores['team_score'] is None: home_scores['team_score'] = 0
+            if home_scores['opp_score'] is None: home_scores['opp_score'] = 0
+            if away_scores['team_score'] is None: away_scores['team_score'] = 0
+            if away_scores['opp_score'] is None: away_scores['opp_score'] = 0
             return (home_scores['team_score'] + away_scores['team_score'] -home_scores['opp_score'] - away_scores['opp_score'])/float(self.wins+self.losses)
         except ZeroDivisionError:
             return 0.0

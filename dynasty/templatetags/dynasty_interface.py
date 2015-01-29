@@ -89,6 +89,13 @@ def abs(value):
     value = int(value)
     return value if value >= 0 else value * -1
 
+@register.filter
+def week_text(value):
+    if value.week >= 0:
+        return value.week + 1
+    else:
+        return "Rd {0}, Gm {1}".format(value.series.round, abs(value.week))
+
 
 
 ###### Quick ways to generate model links ######
@@ -100,8 +107,8 @@ def game_links(game):
 def game_tr(game):
     def get_class(a, b):
         return "game-win" if a>b else ""
-    return mark_safe("<tr><td>{0}</td><td class='{6}'>{1}</td><td>{2}</td><td>vs</td><td class='{7}'>{3}</td><td>{4}</td><td><a href='/games/{5}'>Box</a></td></tr>".format(
-       abs(game.week), game.home_team.name, game.homeScore, game.away_team.name, game.awayScore, game.id, get_class(game.homeScore, game.awayScore),
+    return mark_safe("<tr><td>{0}</td><td class='{6}'>{1}</td><td>{2}</td><td>vs</td><td>{4}</td><td class='{7}'>{3}</td><td><a href='/games/{5}'>Box</a></td></tr>".format(
+       week_text(game), game.home_team.name, game.homeScore, game.away_team.name, game.awayScore, game.id, get_class(game.homeScore, game.awayScore),
        get_class(game.awayScore, game.homeScore)
     ))
 

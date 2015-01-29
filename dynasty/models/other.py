@@ -11,6 +11,9 @@ class Season(models.Model):
     title = models.CharField(max_length=100, default="Welcome to Dynasty")
     story = models.TextField(default="Games start now.")
 
+    def in_playoffs(self):
+        return self.playoff_round > 0
+
     class Meta:
         app_label = "dynasty"
         db_table = "dynasty_season"

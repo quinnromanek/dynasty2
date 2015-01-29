@@ -1,17 +1,78 @@
 {% extends "base.html" %}
 {% load dynasty_interface %}
 
+{% load staticfiles %}
 {% block title %}Games - Dynasty{% endblock %}
 
+{% block head %}
+<script src="{% static 'js/d3.v3.min.js' %}"></script>
+{% endblock %}
 {% block content %}
-<h1>Game Schedule</h1>
-Week {% for week in weeks %}<a href="#week{{ forloop.counter }}">{{ forloop.counter }}</a> {% endfor %}
-{% for week in weeks %}
-<a name="week{{ forloop.counter }}"></a>
-<h3>Week {{ forloop.counter }}</h3>
 
-{% for game in week %}
-        {{ game|game_links }}<br>
-{% endfor %}
-{% endfor %}
+<h1>Game Schedule</h1>
+<ul class="nav nav-tabs">
+    <li class="{% if not season.in_playoffs %}active{% endif %}"><a href="#regular" data-toggle="tab">Regular Season</a></li>
+    <li class="{% if season.in_playoffs %}active{% endif %}"><a href="#playoffs" data-toggle="tab">Playoffs</a></li>
+</ul>
+<div class="tab-content">
+    <div class="tab-pane {% if not season.in_playoffs %}active{% endif %}" id="regular">
+        Week {% for week in weeks %}<a href="#week{{ forloop.counter }}">{{ forloop.counter }}</a> {% endfor %}
+        {% for week in weeks %}
+        <a name="week{{ forloop.counter }}"></a>
+        <h3>Week {{ forloop.counter }}</h3>
+
+        {% for game in week %}
+                {{ game|game_links }}<br>
+        {% endfor %}
+        {% endfor %}
+    </div>
+    <div class="tab-pane {% if season.in_playoffs %}active{% endif %}" id="playoffs">
+        {% if season.in_playoffs %}
+        <svg id="bracket" width="100%" height="500px"></svg>
+        <script src="{% static 'js/playoffbracket.js' %}"></script>
+        <script>
+            var json = {
+  "name": "{% if championship.home_team != None %}{{ championship.home_team_seed }}. {{ championship.home_team.name}} ({{ championship.home_team_wins }}){% elif not rd2.0.is_over and not rd2.1.is_over %}Champion{% endif %}",
+  "otherName": "{% if championship.away_team != None %}{{ championship.away_team_seed }}. {{ championship.away_team.name}} ({{ championship.away_team_wins }}){% endif %}",
+  "champLink": "/series/{{ championship.id }}",
+  "winnersLink": "/series/{{ rd2.0.id }}",
+  "winners": [
+    {"name": "1. {{ rd2.0.home_team.name }} ({{ rd2.0.home_team_wins }})",
+    },
+    {
+      "name": "{% if rd1.0.is_over %}{{ rd2.0.away_team_seed }}. {{ rd2.0.away_team.name }} ({{ rd2.0.away_team_wins }}){% endif %}",
+      "winnersLink": "/series/{{ rd1.0.id }}",
+      "winners": [
+        {"name": "4. {{ rd1.0.home_team.name }} ({{ rd1.0.home_team_wins }})",
+        },
+        {"name": "5. {{ rd1.0.away_team.name }} ({{ rd1.0.away_team_wins }})",
+        }
+      ]
+    }
+  ],
+  "challengersLink": "/series/{{ rd2.1.id }}",
+  "challengers": [
+    {
+      "name": "2. {{ rd2.1.home_team.name }} ({{ rd2.1.home_team_wins }})",
+    },
+    {
+      "name": "{% if rd1.1.is_over %}{{ rd2.1.away_team_seed }}. {{ rd2.1.away_team.name }} ({{ rd2.1.away_team_wins }}){% endif %}",
+      "challengersLink": "/series/{{ rd1.1.id }}",
+      "challengers": [
+        {"name": "3. {{ rd1.1.home_team.name }} ({{ rd1.1.home_team_wins }})",
+        },
+        {"name": "6. {{ rd1.1.away_team.name }} ({{ rd1.1.away_team_wins }})",
+        }
+      ]
+    }
+  ]
+};
+loadData(json);
+
+        </script>
+    {% else %}
+        Playoff bracket is not available until the end of the season.
+    {% endif %}
+    </div>
+</div>
 {% endblock %}

@@ -24,7 +24,7 @@
             {% for stat in last_games %}
             <tr>
                 <td>{{ stat.game.season }}</td>
-                <td>{{ stat.game.week }}</td>
+                <td>{{ stat.game|week_text }}</td>
                 <td>{{ stat.opponent|team_link }}</td>
                 <td>{{ stat.minutes }}</td>
                 <td>{{ stat.assists }}</td>

@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 {% load dynasty_interface %}
+{% load staticfiles %}
 {% block title %}
         {{ series.home_team.name }} vs {{ series.away_team.name }}
 {% endblock %}
+
 
 {% block content %}
 <h3>#{{ series.home_team_seed }} {{ series.home_team.name }} ({{ series.home_team_wins }}) vs #{{ series.away_team_seed }}
