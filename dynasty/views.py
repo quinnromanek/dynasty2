@@ -66,14 +66,13 @@ class TeamsView(DynastyView):
 
         all_teams = Team.objects.all().order_by("-wins")
         wildcards = []
-        for team in seed(list(all_teams)):
-            if len(wildcards) == 2:
-                break
-
+        for team in list(all_teams):
             if team.div_rank() != 1:
                 wildcards.append(team)
 
-        wildcards = [w.id for w in wildcards]
+        wildcards = seed(wildcards)
+
+        wildcards = [w.id for w in wildcards[:2]]
         context['wildcards'] = wildcards
 
 

@@ -42,7 +42,7 @@
                 <tr>
                     <td>{{ player.primary_position|position_short }}{% if player.secondary_position > 0 %}|{{ player.secondary_position|position_short }}{% endif %}</td>
                     <td>{{ player|player_link }}</td>
-                    <td><a href="{% url 'team' player.team.name|lower %}">{{ player.team.name }}</a></td>
+                    <td>{{ player.team|team_link }}</td>
                     <td>{{ player.offense }}</td>
                     <td>{{ player.defense }}</td>
                     <td>{{ player.athletics }}</td>

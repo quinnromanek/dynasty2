@@ -11,11 +11,16 @@ from dynasty import constants
 def start_playoffs(season):
     all_teams = seed(list(Team.objects.all().order_by("-wins")))
     playoff_teams = []
-    wild_cards = 0
+    wild_cards = []
     for team in all_teams:
-        if team.div_rank() == 1 or wild_cards < 2:
+        if team.div_rank() == 1:
             playoff_teams.append(team)
+        else:
+            wild_cards.append(team)
 
+    wild_cards = seed(wild_cards)
+    playoff_teams.append(wild_cards[0])
+    playoff_teams.append(wild_cards[1])
     playoff_teams = seed(playoff_teams)
     championship = Series.objects.create(season=season, round=3)
     round2 = []

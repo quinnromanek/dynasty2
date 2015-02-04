@@ -1,3 +1,4 @@
+from dynasty.league import create_random_player
 from dynasty.templatetags.dynasty_interface import position_short
 
 __author__ = 'Quinn Romanek'
@@ -5,7 +6,7 @@ __author__ = 'Quinn Romanek'
 from django.test import TestCase
 from django.db.models import Sum, Q
 from dynasty.models import Team, Player, Game, PlayerStats
-from dynasty.management.commands.teams_init import create_random_player, generate_team
+from dynasty.management.commands.teams_init import generate_team
 
 class GameTestCase(TestCase):
 

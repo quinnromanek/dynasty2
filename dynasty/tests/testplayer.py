@@ -1,5 +1,5 @@
 from django.test import TestCase
-from dynasty.management.commands.teams_init import create_random_player
+from dynasty.league import create_random_player
 from dynasty.models import Team
 from dynasty.models.player import unpack_values, constant_improvement, early_improvement, late_improvement
 

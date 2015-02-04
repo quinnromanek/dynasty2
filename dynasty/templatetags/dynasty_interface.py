@@ -114,6 +114,8 @@ def game_tr(game):
 
 @register.filter()
 def team_link(team):
+    if team is None:
+        return "Free Agent"
     return mark_safe("<a href='/teams/{0}'>{1}</a>".format(team.name.lower(), team.name))
 
 @register.filter()

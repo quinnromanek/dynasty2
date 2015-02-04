@@ -1,38 +1,18 @@
+from random import randrange, shuffle
+
+from django.core.management.base import BaseCommand
+
+from dynasty.league import run_draft, create_random_player
 from dynasty.models import Team, Player, Game, Season, PlayerStats, Series
-from django.core.management.base import BaseCommand, CommandError
-from random import randrange, shuffle, gauss
-from itertools import combinations
-from dynasty.models.player import pack_values
 from dynasty.models.team import set_best_rotation
-from dynasty.utils import get_binomial_result
 from dynasty.constants import  *
+
 
 teams = [
     ["Rush", "Muscle", "Gryphons", "Knights"],
     ["Wolves", "Bandits", "Cobras", "Phoenix"],
     ["Dragons", "Warriors", "Nova", "Diamond"],
     ["Flames", "Crocs", "Zombies", "Pilgrims"]
-]
-fnames = ["George", "James", "Clint", "Alex", "Alexander",
-          "Fred", "Tom", "Abraham", "Gustav", "Joseph", "Andrew", "Zach",
-          "Michael", "Eric", "Matthew", "Daniel", "Brandon", "Liam", "Lewis",
-          "Andre", "Frank", "Asher", "LaRon", "Chris", "Nick", "Patrick", "Pat", "Jon",
-          "Max", "Xavier", "Dan", "Sean", "Shawn", "Mark", "Giuseppe", "Joe",
-          "Stephen", "Sam", "Samuel", "Sammy", "Mike", "Sebastian", "Lee", "Ming", "Tao", "Jose",
-          "Eduardo", "Jim", "Jimmy", "DJ", "Allen", "Ray", "Griffin", "Quinn", "Louis", "Lou", "Will",
-          "William", "Willie", "Raymond", "Connor", "CJ", "Ethan", "Carter", "John", "Johnny", "Mitchell",
-          "Francisco", "Jamie", "Victor", "Paul", "Harry", "Harrison", "Noah", "Desmond", "Ryan", "Weston"  # 74
-]
-lnames = [
-    "Bradley", "Marshall", "Gordon", "Beckham", "O'Reilly", "Berry",
-    "Jordan", "Ryan", "Owen", "Goldstein", "Robinson", "Louis",
-    "Thomas", "Conrad", "Waterson", "Jacques", "Smithson", "Bingham",
-    "Anderson", "Moran", "Jones", "Roberts", "Richardson", "Hanson",
-    "Bransen", "Emory", "Butler", "Tyler", "Wallace", "Franklin",
-    "Washington", "Madison", "Mason", "Johnson", "Miller", "Allen", "Green", "Li",
-    "Lincoln", "Bird", "Monroe", "Jefferson", "Richards", "Smith", "Williams", "Lopez",
-    "Brown", "Davis", "Wilson", "Moore", "Taylor", "Thomas", "Jackson", "White", "Harris",
-    "Martin", "Thompson", "Garcia", "Martinez", "Robinson", "Clark", "Rodriguez", "Lee"  # 60
 ]
 
 
@@ -111,67 +91,11 @@ def create_schedule(div_games=DIVISION_GAMES, conf_games=CONFERENCE_GAMES, int_g
         i += 1
 
 
-def get_secondary_position(primary_position):
-    secondary_position = 0
-    if primary_position == 1:
-        if randrange(2) > 0:
-            secondary_position = 2
-    elif primary_position == 2:
-        rand = randrange(3)
-        if rand == 2:
-            secondary_position = 1
-        elif rand == 1:
-            secondary_position = 3
-    elif primary_position == 3:
-        rand = randrange(3)
-        if rand == 2:
-            secondary_position = 4
-        elif rand == 1:
-            secondary_position = 2
-    elif primary_position == 4:
-        rand = randrange(3)
-        if rand == 2:
-            secondary_position = 5
-        elif rand == 3:
-            secondary_position = 3
-    elif primary_position == 5:
-        rand = randrange(2)
-        if rand == 1:
-            secondary_position = 4
-    return secondary_position
 
 
 
-def create_random_player(team, age=1, position=0, roster=0):
-    if position == 0:
-        position = randrange(5) + 1
-        s_position = get_secondary_position(position)
-    else:
-        s_position = 0
 
-    name = fnames[randrange(len(fnames))] + " " + lnames[randrange(len(lnames))]
-    skill =  get_binomial_result(1, 10, 0.35)
-    shooting = get_binomial_result(1, 10, 0.35)
-    athletics = get_binomial_result(1, 10, 0.35)
-    stamina = get_binomial_result(1, 10, 0.35)
 
-    attrs = [skill, shooting, athletics, stamina]
-    amplitudes = []
-    for i in xrange(len(attrs)):
-        # Growth amplitude
-        amplitudes.append(get_binomial_result(0, 10 - attrs[i], 0.4))
-        peak = attrs[i] + amplitudes[-1]
-        amplitudes.append(get_binomial_result(0, peak-1, 0.4))
-
-    player = Player.objects.create(name=name, primary_position=position, secondary_position=s_position, defense=shooting,
-                          offense=skill, prime_year=randrange(6, 11),
-                          improvement_curves=pack_values([randrange(3) for _ in xrange(8)], 3),
-                          improvement_amplitudes=pack_values(amplitudes, 11),
-                          number=randrange(99),
-                          tendency=gauss(0.0, 0.15),
-                          athletics=athletics, stamina=stamina, age=age, team=team, roster=roster)
-
-    return player
 
 
 
@@ -183,7 +107,10 @@ def generate_team(team):
 
     set_best_rotation(team)
 
-
+def set_team_rotations():
+    teams = Team.objects.all()
+    for team in teams:
+        set_best_rotation(team)
 
 def generate_players_for_teams():
     Player.objects.all().delete()
@@ -199,8 +126,10 @@ class Command(BaseCommand):
         Season.objects.all().delete()
         PlayerStats.objects.all().delete()
         Series.objects.all().delete()
+        Player.objects.all().delete()
         make_teams()
         create_schedule()
-        generate_players_for_teams()
+        run_draft(expansion=True)
+        set_team_rotations()
         Season.objects.create(name="main")
         self.stdout.write("Success.")

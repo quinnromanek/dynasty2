@@ -3,6 +3,7 @@ from django.db.models import Avg
 from dynasty.models import Team
 from dynasty.templatetags.dynasty_interface import position_short
 from math import log10, ceil, pow
+from dynasty.utils import get_binomial_result
 
 __author__ = 'flex109'
 
@@ -95,6 +96,17 @@ class Player(models.Model):
 
     def rating(self):
         return self.offense + self.defense + self.athletics
+
+    def scout(self):
+        amplitudes = unpack_values(self.improvement_amplitudes, 8, 11)
+        max_rating = self.offense + amplitudes[0] + self.defense + amplitudes[1] + self.athletics + amplitudes[2]
+        max_rating_adj = max_rating + get_binomial_result(-5, 5, 0.5)
+        if max_rating_adj < 3:
+            return 3
+        elif max_rating_adj > 30:
+            return 30
+        else:
+            return max_rating_adj
 
     def has_position(self, pos):
         return pos == self.primary_position or pos == self.secondary_position
