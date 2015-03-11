@@ -2,7 +2,11 @@ var svg=$("#bracket");
 svg.attr("xmlns:xlink","http://w3.org/1999/xlink")
 
 function teamLink(text) {
-  var teamName = text.match(/\d\.\s(\w+)\s\(\d\)/)[1].toLowerCase();
+  try{
+    var teamName = text.match(/\d\.\s(\w+)\s\(\d\)/)[1].toLowerCase();
+  }catch(err) {
+    return "";
+  }
   return "/teams/" + teamName;
 }
 

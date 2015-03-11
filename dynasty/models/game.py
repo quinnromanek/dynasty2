@@ -2,6 +2,7 @@ from math import ceil
 from random import random, randrange, choice
 from django.db.models import Q
 from django.db import models
+from dynasty.models.other import current_season
 from dynasty.models.player import Player
 from dynasty.models.team import Team, find_rotation
 
@@ -263,7 +264,6 @@ class Game(models.Model):
         if self.series is not None:
             self.series.game_finished(self)
 
-
         self.save()
 
 
@@ -314,4 +314,4 @@ def log_game(player, game, team, data):
                                      steals=data[3], minutes=player.get_all_minutes(), assists=data[4])
 
 def regular_season_games(team):
-    return Game.objects.filter(Q(away_team__id=team.id) | Q(home_team__id=team.id), week__gte=0).order_by('week')
+    return Game.objects.filter(Q(away_team__id=team.id) | Q(home_team__id=team.id), week__gte=0, season=current_season().year).order_by('week')

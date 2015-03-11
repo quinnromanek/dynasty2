@@ -1,15 +1,20 @@
+from math import log10, ceil, pow
+
 from django.db import models
 from django.db.models import Avg
-from dynasty.models import Team
+
+from dynasty.models.other import current_season
 from dynasty.templatetags.dynasty_interface import position_short
-from math import log10, ceil, pow
 from dynasty.utils import get_binomial_result
+
 
 __author__ = 'flex109'
 
 
 def constant_improvement(year, peak, amplitude):
     return int(round(float(amplitude) * (year / peak)))
+
+
 
 
 def early_improvement(year, peak, amplitude):
@@ -74,6 +79,7 @@ class Player(models.Model):
     roster = models.IntegerField('starting position or bench', default=0)
     minutes = models.IntegerField(default=0)
     number = models.IntegerField(default=0)
+    contract = models.OneToOneField("dynasty.contract", null=True)
 
     # Internal stats
     fatigue = models.IntegerField(default=0.0)
@@ -98,8 +104,18 @@ class Player(models.Model):
         return self.offense + self.defense + self.athletics
 
     def scout(self):
+        if self.age > self.prime_year:
+            return self.rating()
+
+        use_age = self.age if self.age > 0 else 1
+
+        curves = unpack_values(self.improvement_curves, 8, 3)
         amplitudes = unpack_values(self.improvement_amplitudes, 8, 11)
-        max_rating = self.offense + amplitudes[0] + self.defense + amplitudes[1] + self.athletics + amplitudes[2]
+        current = [self.offense, self.defense, self.athletics]
+
+        max_rating = sum([get_improve_func(curves[i])(self.prime_year, self.prime_year, amplitudes[i])-\
+                          get_improve_func(curves[i])(use_age-1, self.prime_year, amplitudes[i]) + curr for i, curr in enumerate(current)])
+
         max_rating_adj = max_rating + get_binomial_result(-5, 5, 0.5)
         if max_rating_adj < 3:
             return 3
@@ -159,26 +175,26 @@ class Player(models.Model):
         return self.get_primary_minutes() + self.get_secondary_minutes()
 
     def ppg_season(self):
-        fgpg = self.playerstats_set.all().aggregate(Avg('field_goals'))['field_goals__avg']
+        fgpg = self.playerstats_set.filter(game__season=current_season().year).aggregate(Avg('field_goals'))['field_goals__avg']
 
         if fgpg is None:
             return 0.0
         return fgpg * 2
 
     def rpg_season(self):
-        rpg = self.playerstats_set.all().aggregate(Avg('rebounds'))['rebounds__avg']
+        rpg = self.playerstats_set.filter(game__season=current_season().year).aggregate(Avg('rebounds'))['rebounds__avg']
         if rpg is None:
             return 0.0
         return rpg
 
     def spg_season(self):
-        spg = self.playerstats_set.all().aggregate(Avg('steals'))['steals__avg']
+        spg = self.playerstats_set.filter(game__season=current_season().year).aggregate(Avg('steals'))['steals__avg']
         if spg is None:
             return 0.0
         return spg
 
     def apg_season(self):
-        spg = self.playerstats_set.all().aggregate(Avg('assists'))['assists__avg']
+        spg = self.playerstats_set.filter(game__season=current_season().year).aggregate(Avg('assists'))['assists__avg']
         if spg is None:
             return 0.0
         return spg
@@ -189,6 +205,10 @@ class Player(models.Model):
     def grow_year(self):
         curves = unpack_values(self.improvement_curves, 8, 3)
         amplitudes = unpack_values(self.improvement_amplitudes, 8, 11)
+        if self.age == 0:
+            self.age += 1
+            self.save()
+            return
 
         if self.age <= self.prime_year:
             self.offense += improvement(curves[0], self.age, self.prime_year, amplitudes[0])
@@ -205,3 +225,5 @@ class Player(models.Model):
 
         self.age += 1
         self.save()
+
+

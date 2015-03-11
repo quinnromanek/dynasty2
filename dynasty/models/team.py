@@ -1,13 +1,19 @@
+from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Q, Sum, F
+import operator
+from dynasty.constants import GAME_LENGTH
+from dynasty.models.other import current_season
 from dynasty.templatetags.dynasty_interface import position_short
 
 __author__ = 'flex109'
+
 
 def clear_team_minutes(team):
     for player in team.player_set.all():
         player.set_primary_minutes(0)
         player.set_secondary_minutes(0)
+
 
 def set_starter_rotation(team):
     clear_team_minutes(team)
@@ -15,15 +21,30 @@ def set_starter_rotation(team):
         player = team.player_set.get(roster=pos)
         player.set_min_at_pos(pos, 24)
 
+
+def potential_minutes(player_set):
+    minutes = [0] * 5
+    for player in player_set:
+        minutes[player.primary_position - 1] += player.max_minutes()
+
+        if player.secondary_position > 0:
+            minutes[player.secondary_position - 1] += player.max_minutes()
+
+    return minutes
+
+
 def set_best_rotation(team):
+    def pos_order(minutes_list):
+        return [pos[0] + 1 for pos in sorted(enumerate(minutes_list), key=operator.itemgetter(1))]
+
     clear_team_minutes(team)
     players = list(team.player_set.all())
     for player in players:
         player.roster = 0
 
-    pos_min = [0]*5
-    starters = [None]*5
-    for position in range(1, 6):
+    pos_min = [0] * 5
+    starters = [None] * 5
+    for position in pos_order(potential_minutes(team.player_set.all())):
         best = (None, -1)
         for player in players:
             if player.has_position(position) and player.rating() > best[1] and player.roster == 0:
@@ -31,11 +52,13 @@ def set_best_rotation(team):
         if best[0] is None:
             print("Fuck this")
         best[0].roster = position
+
         starters[position - 1] = best[0]
         best[0].set_min_at_pos(position, best[0].max_minutes())
         pos_min[position - 1] += best[0].get_all_minutes()
+        best[0].save()
 
-    for position in range(1, 6):
+    for position in pos_order(potential_minutes(team.player_set.filter(roster=0))):
         while True:
             best = (None, -1)
             for player in players:
@@ -46,7 +69,7 @@ def set_best_rotation(team):
             if best[0] is None:
                 break
 
-            minutes_played = min(best[0].max_minutes() - best[0].get_all_minutes(), 24 - pos_min[position-1])
+            minutes_played = min(best[0].max_minutes() - best[0].get_all_minutes(), 24 - pos_min[position - 1])
             best[0].set_min_at_pos(position, minutes_played)
             pos_min[position - 1] += minutes_played
 
@@ -54,31 +77,33 @@ def set_best_rotation(team):
                 break
 
         if pos_min[position - 1] < 24:
-            starters[position - 1].set_min_at_pos(position, starters[position - 1].min_at_pos(position) + (24 - pos_min[position - 1]) )
+            starters[position - 1].set_min_at_pos(position, starters[position - 1].min_at_pos(position) + (
+                24 - pos_min[position - 1]))
 
     for player in players:
         player.save()
 
     print(team.name)
-    for i in range(len(starters)):
-        print("{0} {1}:{2}".format(starters[i].name, position_short(i+1), starters[i].min_at_pos(i+1)))
-    for player in players:
-        if player.roster == 0 and player.get_all_minutes() > 0:
-            line = "{0} ".format(player.name)
-            if player.get_primary_minutes() > 0:
-                line += "{0} {1} ".format(position_short(player.primary_position), player.get_primary_minutes())
-            if player.get_secondary_minutes() > 0:
-                line += "{0} {1}".format(position_short(player.secondary_position), player.get_secondary_minutes())
-            print(line)
+    # for i in range(len(starters)):
+    #     print("{0} {1}:{2}".format(starters[i].name, position_short(i + 1), starters[i].min_at_pos(i + 1)))
+    # for player in players:
+    #     if player.roster == 0 and player.get_all_minutes() > 0:
+    #         line = "{0} ".format(player.name)
+    #         if player.get_primary_minutes() > 0:
+    #             line += "{0} {1} ".format(position_short(player.primary_position), player.get_primary_minutes())
+    #         if player.get_secondary_minutes() > 0:
+    #             line += "{0} {1}".format(position_short(player.secondary_position), player.get_secondary_minutes())
+    #         print(line)
 
     rotation = find_rotation(team)
     if rotation is None:
         raise RuntimeError("Rotation is not valid!")
-
+    print("Rotation Rating: {0}".format(team.rotation_rating()))
 
 
 def find_rotation(team):
     full_team = team.starters() + team.bench()
+
     def check_rotation(rotation, time, time_played):
         time = min([sum([stint[1] for stint in pos]) for pos in rotation])
         if time == 24:
@@ -139,11 +164,10 @@ def find_rotation(team):
     return check_rotation(rotation, 0, time_played)
 
 
-
-def tiebreak(*teams):
+def tiebreak(season, teams):
     def head_to_head(team, opp):
-        wins = team.home_game.filter(Q(away_team=opp) & Q(homeScore__gt=F("awayScore"))).count()
-        wins += team.away_game.filter(Q(home_team=opp) & Q(awayScore__gt=F("homeScore"))).count()
+        wins = team.home_game.filter(Q(away_team=opp) & Q(homeScore__gt=F("awayScore")), season=season.year).count()
+        wins += team.away_game.filter(Q(home_team=opp) & Q(awayScore__gt=F("homeScore")), season=season.year).count()
         return wins
 
     if len(teams) == 2:
@@ -157,7 +181,7 @@ def tiebreak(*teams):
     return sorted(teams, key=Team.point_diff, reverse=True)
 
 
-def seed(teams):
+def seed(teams, season):
     ties = []
     for i in range(len(teams)):
         team = teams[i]
@@ -165,31 +189,33 @@ def seed(teams):
             ties.append(team)
         else:
             if len(ties) > 1:
-                ties_broken = tiebreak(*ties)
+                ties_broken = tiebreak(season, ties)
                 for j in range(len(ties_broken)):
-                    teams[i-len(ties)+j] = ties_broken[j]
+                    teams[i - len(ties) + j] = ties_broken[j]
 
             ties = [teams[i]]
 
     if len(ties) > 1:
-        ties_broken = tiebreak(*ties)
+        ties_broken = tiebreak(season, ties)
         for j in range(len(ties_broken)):
-            teams[len(teams)-len(ties)+j] = ties_broken[j]
+            teams[len(teams) - len(ties) + j] = ties_broken[j]
 
     return teams
 
 
-
 class Team(models.Model):
-
     name = models.CharField(max_length=50)
     wins = models.IntegerField(default=0)
     losses = models.IntegerField(default=0)
     division = models.IntegerField(default=0)
+    owner = models.OneToOneField(User, null=True)
 
     class Meta:
         app_label = "dynasty"
         db_table = "dynasty_team"
+
+    def is_ai(self):
+        return self.owner is None
 
     def __unicode__(self):
         return "{0} ({1}-{2})".format(self.name, self.wins, self.losses)
@@ -212,22 +238,33 @@ class Team(models.Model):
         return b
 
     def div_rank(self):
-        agg = seed(list(Team.objects.filter(division=self.division).order_by("-wins")))
+        agg = seed(list(Team.objects.filter(division=self.division).order_by("-wins")), current_season())
         for i in range(len(agg)):
             if agg[i].id == self.id:
                 return i + 1
 
     def point_diff(self):
         try:
-            home_scores = self.home_game.filter(week__gte=0).aggregate(team_score=Sum('homeScore'), opp_score=Sum('awayScore'))
-            away_scores = self.away_game.filter(week__gte=0).aggregate(team_score=Sum('awayScore'), opp_score=Sum('homeScore'))
+            home_scores = self.home_game.filter(season=current_season().year, week__gte=0).aggregate(
+                team_score=Sum('homeScore'), opp_score=Sum('awayScore'))
+            away_scores = self.away_game.filter(season=current_season().year, week__gte=0).aggregate(
+                team_score=Sum('awayScore'), opp_score=Sum('homeScore'))
             if home_scores['team_score'] is None: home_scores['team_score'] = 0
             if home_scores['opp_score'] is None: home_scores['opp_score'] = 0
             if away_scores['team_score'] is None: away_scores['team_score'] = 0
             if away_scores['opp_score'] is None: away_scores['opp_score'] = 0
-            return (home_scores['team_score'] + away_scores['team_score'] -home_scores['opp_score'] - away_scores['opp_score'])/float(self.wins+self.losses)
+            return (home_scores['team_score'] + away_scores['team_score'] - home_scores['opp_score'] - away_scores[
+                'opp_score']) / float(self.wins + self.losses)
         except ZeroDivisionError:
             return 0.0
+
+    def rotation_rating(self):
+        rating = 0.0
+        for player in self.player_set.all():
+            rating += player.rating() * (player.get_primary_minutes() + player.get_secondary_minutes())
+
+        return rating/(GAME_LENGTH*5.0)
+
 
 
 

@@ -59,7 +59,8 @@ class Series(models.Model):
                 self.advance.away_team = self.winner()
                 self.advance.away_team_seed = seed
             self.advance.save()
-
+        elif self.is_over() and self.advance is None:
+            pass
         else:
             self.game_set.create(home_team=self.home_team, away_team=self.away_team, week=(game.week-1), season=self.season.year )
 

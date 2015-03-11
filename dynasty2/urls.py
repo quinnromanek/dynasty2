@@ -8,6 +8,7 @@ urlpatterns = patterns('',
     # url(r'^$', 'dynasty2.views.home', name='home'),
     # url(r'^blog/', include('blog.urls')),
     url(r'^', include('dynasty.urls')),
+    url(r'^', include('django.contrib.auth.urls')),
     url(r'^admin/', include(admin.site.urls)),
     
 )

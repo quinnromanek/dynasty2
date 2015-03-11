@@ -16,40 +16,49 @@
 {% block head %}{% endblock %}
 </head>
 <body>
-	<div class="navbar">
-		<div class="navbar-inner">
-			<ul class="nav nav-pills mainnav">
-				<li><a href="{% url 'index' %}">League</a></li>
-				<li><a href="{% url 'teams' %}">Standings</a></li>
-				<li><a href="{% url 'players' %}">Players</a></li>
-				<li><a href="{% url 'games' %}">Schedule</a></li>
-				<li><a data-toggle="dropdown" href="{% url 'teams' %}">Teams <span class="caret"></span></a>
-					<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-  						<li><a href="{% url 'team' 'rush' %}">Rush</a></li>
-  						<li><a href="{% url 'team' 'knights' %}">Knights</a></li>
-  						<li><a href="{% url 'team' 'gryphons' %}">Gryphons</a></li>
-  						<li><a href="{% url 'team' 'muscle' %}">Muscle</a></li>
-  						<li class="divider"></li>
-  						<li><a href="{% url 'team' 'wolves' %}">Wolves</a></li>
-  						<li><a href="{% url 'team' 'bandits' %}">Bandits</a></li>
-  						<li><a href="{% url 'team' 'phoenix' %}">Phoenix</a></li>
-  						<li><a href="{% url 'team' 'cobras' %}">Cobras</a></li>
-  						<li class="divider"></li>
-  						<li><a href="{% url 'team' 'dragons' %}">Dragons</a></li>
-  						<li><a href="{% url 'team' 'warriors' %}">Warriors</a></li>
-  						<li><a href="{% url 'team' 'nova' %}">Nova</a></li>
-  						<li><a href="{% url 'team' 'diamond' %}">Diamond</a></li>
-  						<li class="divider"></li>
-  						<li><a href="{% url 'team' 'flames' %}">Flames</a></li>
-  						<li><a href="{% url 'team' 'crocs' %}">Crocs</a></li>
-  						<li><a href="{% url 'team' 'zombies' %}">Zombies</a></li>
-  						<li><a href="{% url 'team' 'pilgrims'%}">Pilgrims</a></li>
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="/">Dynasty</a>
+            </div>
+                <ul class="nav navbar-nav">
+                    <li><a href="{% url 'index' %}">League</a></li>
+                    <li><a href="{% url 'teams' %}">Standings</a></li>
+                    <li><a href="{% url 'players' %}">Players</a></li>
+                    <li><a href="{% url 'games' %}">Schedule</a></li>
+                    <li><a data-toggle="dropdown" href="{% url 'teams' %}">Teams <span class="caret"></span></a>
+                        <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                            <li><a href="{% url 'team' 'rush' %}">Rush</a></li>
+                            <li><a href="{% url 'team' 'knights' %}">Knights</a></li>
+                            <li><a href="{% url 'team' 'gryphons' %}">Gryphons</a></li>
+                            <li><a href="{% url 'team' 'muscle' %}">Muscle</a></li>
+                            <li class="divider"></li>
+                            <li><a href="{% url 'team' 'wolves' %}">Wolves</a></li>
+                            <li><a href="{% url 'team' 'bandits' %}">Bandits</a></li>
+                            <li><a href="{% url 'team' 'phoenix' %}">Phoenix</a></li>
+                            <li><a href="{% url 'team' 'cobras' %}">Cobras</a></li>
+                            <li class="divider"></li>
+                            <li><a href="{% url 'team' 'dragons' %}">Dragons</a></li>
+                            <li><a href="{% url 'team' 'warriors' %}">Warriors</a></li>
+                            <li><a href="{% url 'team' 'nova' %}">Nova</a></li>
+                            <li><a href="{% url 'team' 'diamond' %}">Diamond</a></li>
+                            <li class="divider"></li>
+                            <li><a href="{% url 'team' 'flames' %}">Flames</a></li>
+                            <li><a href="{% url 'team' 'crocs' %}">Crocs</a></li>
+                            <li><a href="{% url 'team' 'zombies' %}">Zombies</a></li>
+                            <li><a href="{% url 'team' 'pilgrims'%}">Pilgrims</a></li>
 
-  					</ul>
-				</li>
-			<ul>
-		</div>
-	</div>
+                        </ul>
+                    </li>
+                    {% if user.is_authenticated %}
+                    <li><a href="{% url 'team' user.team.name|lower %}">{{ user.team.name }}</a></li>
+                    <li><a href="#">GM</a></li>
+                    {% endif %}
+                </ul>
+            <p class="nav navbar-text navbar-right">{% if not user.is_authenticated %}
+                <a class="navbar-link" href="/login">Login</a>{% else %}Hello, {{ user.username }}.{% endif %}</p>
+        </div>
+    </nav>
 	{% block games %}
 	<div class="col-md-1"></div>
 	<div class="col-md-10">

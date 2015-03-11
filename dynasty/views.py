@@ -40,6 +40,7 @@ class TeamView(DynastyView):
         context = super(TeamView, self).get_context_data(**kwargs)
         context['team'] = get_object_or_404(Team, name=context['team_name'].capitalize())
         team = context['team']
+        context['players'] = team.starters() + team.bench()
         playoff_games = Game.objects.filter(Q(away_team=team) | Q(home_team=team), week__lt=0).order_by("series__round", "-week")
         context['season_games'] = chain(regular_season_games(context['team']), playoff_games)
         return context
@@ -62,7 +63,7 @@ class TeamsView(DynastyView):
 
         divs = []
         for i in range(4):
-            divs.append(seed(list(Team.objects.filter(division=i).order_by("-wins"))))
+            divs.append(seed(list(Team.objects.filter(division=i).order_by("-wins")), context['season']))
 
         all_teams = Team.objects.all().order_by("-wins")
         wildcards = []
@@ -70,15 +71,15 @@ class TeamsView(DynastyView):
             if team.div_rank() != 1:
                 wildcards.append(team)
 
-        wildcards = seed(wildcards)
+        wildcards = seed(wildcards, context['season'])
 
         wildcards = [w.id for w in wildcards[:2]]
         context['wildcards'] = wildcards
 
 
         confs = []
-        confs.append(seed(list(Team.objects.filter(Q(division=0) | Q(division=1)).order_by("-wins"))))
-        confs.append(seed(list(Team.objects.filter(Q(division=2) | Q(division=3)).order_by("-wins"))))
+        confs.append(seed(list(Team.objects.filter(Q(division=0) | Q(division=1)).order_by("-wins")), context['season']))
+        confs.append(seed(list(Team.objects.filter(Q(division=2) | Q(division=3)).order_by("-wins")), context['season']))
 
         context['confs'] = confs
         context['divs'] = divs
@@ -104,7 +105,7 @@ class GamesView(DynastyView):
         context = super(GamesView, self).get_context_data(**kwargs)
         weeks = []
         for week_num in range(constants.SEASON_LENGTH):
-            weeks.append(Game.objects.filter(week=week_num))
+            weeks.append(Game.objects.filter(season=context['season'].year, week=week_num))
         context['weeks'] = weeks
         if context['season'].in_playoffs():
             context['rd1'] = Series.objects.filter(season=context['season'], round=1).order_by("-home_team_seed")
@@ -179,8 +180,18 @@ class PlayersView(DynastyView):
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
+        team = request.GET.get("team")
+        team_names = [t.name for t in Team.objects.all()] + ["Free Agents"]
+        if team in team_names:
+            if team == "Free Agents":
+                player_list = Player.objects.all().filter(team=None).order_by("name")
+            else:
+                player_list = Player.objects.all().filter(team__name=team).order_by("name")
+        else:
+            player_list = Player.objects.all().order_by("name")
 
-        player_list = Player.objects.all().order_by("name")
+        context['team_names'] = ["All"] + team_names
+        context['team'] = team
         position_filter = request.GET.get('position')
         valid_orders = ['name', 'team', 'offense', 'defense', 'athletics', 'stamina', 'spg', 'apg', 'rpg', 'ppg']
         order = request.GET.get('order_by')

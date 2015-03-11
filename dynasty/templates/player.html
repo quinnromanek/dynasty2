@@ -8,7 +8,8 @@
     <h3>#{{ player.number }} {{ player.name }} <small>{{ player|player_positions }}</small></h3>
     <div class="panel panel-default">
         <div class="panel-body">
-            <strong>Team:</strong> <a href="{% url 'team' player.team.name|lower %}">{{ player.team.name }}</a> ({{ player.team.wins }}-{{ player.team.losses }})<br>
+            <strong>Team:</strong> {% if player.team %}<a href="{% url 'team' player.team.name|lower %}">{{ player.team.name }}</a> ({{ player.team.wins }}-{{ player.team.losses }})<br>
+            {% else %}Free Agent{% endif %}
             <strong>Years:</strong> {{ player.age }}<br>
             <strong>Attrs:</strong> O|{{ player.offense}} D|{{ player.defense }} A|{{ player.athletics }}<br>
             <strong>Tendency: </strong> {{ player.tendency|tendency_description }}<br>

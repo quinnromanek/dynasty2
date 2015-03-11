@@ -96,7 +96,9 @@ def week_text(value):
     else:
         return "Rd {0}, Gm {1}".format(value.series.round, abs(value.week))
 
-
+@register.filter
+def remaining_years(contract, season):
+    return contract.start - season.year + contract.years
 
 ###### Quick ways to generate model links ######
 @register.filter()

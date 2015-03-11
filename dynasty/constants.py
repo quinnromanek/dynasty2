@@ -2,12 +2,15 @@ __author__ = 'flex109'
 
 ##### GAME CONSTANTS ####
 
-SEASON_LENGTH = 1
-CONFERENCE_GAMES = 0
-DIVISION_GAMES = 0
+SEASON_LENGTH = 11
+CONFERENCE_GAMES = 1
+DIVISION_GAMES = 2
 GAME_LENGTH = 24
-PLAYOFF_WINS = 3
-FNAMES = ["George", "James", "Clint", "Alex", "Alexander",
+PLAYOFF_WINS = 2
+
+FREE_AGENCY_WEEKS = 3
+
+FNAMES = ["George", "James", "Clint", "Alex", "Alexander", "Ben", "Benjamin", "Mark",
           "Fred", "Tom", "Abraham", "Gustav", "Joseph", "Andrew", "Zach",
           "Michael", "Eric", "Matthew", "Daniel", "Brandon", "Liam", "Lewis",
           "Andre", "Frank", "Asher", "LaRon", "Chris", "Nick", "Patrick", "Pat", "Jon",
@@ -27,6 +30,12 @@ LNAMES = [
     "Lincoln", "Bird", "Monroe", "Jefferson", "Richards", "Smith", "Williams", "Lopez",
     "Brown", "Davis", "Wilson", "Moore", "Taylor", "Thomas", "Jackson", "White", "Harris",
     "Martin", "Thompson", "Garcia", "Martinez", "Robinson", "Clark", "Rodriguez", "Lee"  # 60
+]
+TEAMS = [
+    ["Rush", "Muscle", "Gryphons", "Knights"],
+    ["Wolves", "Bandits", "Cobras", "Phoenix"],
+    ["Dragons", "Warriors", "Nova", "Diamond"],
+    ["Flames", "Crocs", "Zombies", "Pilgrims"]
 ]
 
 

@@ -14,6 +14,17 @@ class Season(models.Model):
     def in_playoffs(self):
         return self.playoff_round > 0
 
+    def in_offseason(self):
+        return self.playoff_round < 0
+
+    def in_regular_season(self):
+        return self.playoff_round == 0
+
+
     class Meta:
         app_label = "dynasty"
         db_table = "dynasty_season"
+
+
+def current_season():
+    return Season.objects.get(name="main")

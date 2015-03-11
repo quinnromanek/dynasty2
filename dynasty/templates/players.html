@@ -5,7 +5,9 @@
         <div class="panel panel-default">
             <div class="panel-body">
                 <form method="get"><select name="team">
-                    <option>All</option>
+                {% for team_name in team_names %}
+                    <option {% ifequal team_name team %}selected="selected"{% endifequal %}>{{ team_name }}</option>
+                {% endfor %}
                 </select>
                 <select name="position" >
                     <option>All</option>
@@ -31,10 +33,10 @@
                     <td>Ath</td>
                     <td>Sta</td>
                     <td>Age</td>
-                    <td><a href="?order_by=apg&position={{ pos }}">Assists {% ifequal order "apg" %}<span class="caret"></span>{% endifequal %}</a></td>
-                    <td><a href="?order_by=spg&position={{ pos }}">Steals {% ifequal order "spg" %}<span class="caret"></span>{% endifequal %}</a></td>
-                    <td><a href="?order_by=rpg&position={{ pos }}">Rebounds {% ifequal order "rpg" %}<span class="caret"></span>{% endifequal %}</a></td>
-                    <td><a href="?order_by=ppg&position={{ pos }}">Points {% ifequal order "ppg" %}<span class="caret"></span>{% endifequal %}</a></td>
+                    <td><a href="?order_by=apg&team={{ team }}&position={{ pos }}">Assists {% ifequal order "apg" %}<span class="caret"></span>{% endifequal %}</a></td>
+                    <td><a href="?order_by=spg&team={{ team }}&position={{ pos }}">Steals {% ifequal order "spg" %}<span class="caret"></span>{% endifequal %}</a></td>
+                    <td><a href="?order_by=rpg&team={{ team }}&position={{ pos }}">Rebounds {% ifequal order "rpg" %}<span class="caret"></span>{% endifequal %}</a></td>
+                    <td><a href="?order_by=ppg&team={{ team }}&position={{ pos }}">Points {% ifequal order "ppg" %}<span class="caret"></span>{% endifequal %}</a></td>
                 </tr>
             </thead>
             <tbody>
@@ -57,10 +59,10 @@
             </tbody>
         </table>
         <ul class="pagination">
-            <li class="{% if page <= 1 %}disabled{% endif %}"><a  href="?page={{ page|add:'-1' }}&order_by={{ order }}&position={{ pos }}">&laquo;</a></li>
+            <li class="{% if page <= 1 %}disabled{% endif %}"><a  href="?page={{ page|add:'-1' }}&team={{ team }}&order_by={{ order }}&position={{ pos }}">&laquo;</a></li>
             {% for page_num in page_range %}
-            <li class="{% if page == page_num %}active{% endif %}"><a href="?page={{ page_num }}&order_by={{ order }}&position={{ pos }}">{{ page_num }}</a></li>
+            <li class="{% if page == page_num %}active{% endif %}"><a href="?page={{ page_num }}&team={{ team }}&order_by={{ order }}&position={{ pos }}">{{ page_num }}</a></li>
             {% endfor %}
-            <li class="{% if page >= num_pages %}disabled{% endif %}"><a  href="?page={{ page|add:'1' }}&order_by={{ order }}&position={{ pos }}">&raquo;</a></li>
+            <li class="{% if page >= num_pages %}disabled{% endif %}"><a  href="?page={{ page|add:'1' }}&team={{ team }}&order_by={{ order }}&position={{ pos }}">&raquo;</a></li>
         </ul>
         {% endblock %}
